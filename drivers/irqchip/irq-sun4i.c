@@ -46,7 +46,8 @@ static int __init sun4i_init_domain_chips(void)
 	struct irq_chip_generic *gc;
 	int i, ret, base = 0;
 
-	ret = irq_alloc_domain_generic_chips(d, SUN4I_IRQS_PER_CHIP, 1,
+	ret = irq_alloc_domain_generic_chips(sun4i_irq_domain,
+					     SUN4I_IRQS_PER_CHIP, 1,
 					     "sun4i_irq", handle_level_irq,
 					     clr, 0, IRQ_GC_INIT_MASK_CACHE);
 	if (ret)
@@ -57,9 +58,9 @@ static int __init sun4i_init_domain_chips(void)
 		gc->reg_base = sun4i_irq_base;
 		gc->chip_types[0].regs.mask = SUN4I_IRQ_ENABLE_REG(i);
 		gc->chip_types[0].regs.ack = SUN4I_IRQ_PENDING_REG(i);
-		gc->chip_types[0].chip.mask = irq_gc_mask_clr_bit;
-		gc->chip_types[0].chip.ack = irq_gc_ack_set_bit;
-		gc->chip_types[0].chip.unmask = irq_gc_mask_set_bit;
+		gc->chip_types[0].chip.irq_mask = irq_gc_mask_clr_bit;
+		gc->chip_types[0].chip.irq_ack = irq_gc_ack_set_bit;
+		gc->chip_types[0].chip.irq_unmask = irq_gc_mask_set_bit;
 
 		/* Disable, mask and clear all pending interrupts */
 		writel(0, sun4i_irq_base + SUN4I_IRQ_ENABLE_REG(i));
