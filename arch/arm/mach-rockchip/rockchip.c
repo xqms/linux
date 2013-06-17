@@ -24,6 +24,7 @@
 #include <asm/mach/arch.h>
 #include <asm/mach/map.h>
 #include <asm/hardware/cache-l2x0.h>
+#include "core.h"
 
 static void __init rockchip_timer_init(void)
 {
@@ -46,6 +47,7 @@ static const char * const rockchip_board_dt_compat[] = {
 };
 
 DT_MACHINE_START(ROCKCHIP_DT, "Rockchip Cortex-A9 (Device Tree)")
+	.smp		= smp_ops(rockchip_smp_ops),
 	.init_machine	= rockchip_dt_init,
 	.init_time	= rockchip_timer_init,
 	.dt_compat	= rockchip_board_dt_compat,
