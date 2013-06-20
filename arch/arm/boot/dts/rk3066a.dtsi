@@ -83,7 +83,7 @@
 			compatible = "arm,cortex-a9-twd-timer";
 			reg = <0x1013c600 0x20>;
 			interrupts = <GIC_PPI 13 0x304>;
-			clocks = <&dummy150m>;
+			clocks = <&clk_gates0 0>;
 		};
 
 		timer@20038000 {
@@ -349,7 +349,7 @@
 			interrupts = <GIC_SPI 34 IRQ_TYPE_LEVEL_HIGH>;
 			reg-shift = <2>;
 			reg-io-width = <1>;
-			clocks = <&clk_gates1 8>;
+			clocks = <&mux_uart0>;
 			status = "disabled";
 		};
 
@@ -359,7 +359,7 @@
 			interrupts = <GIC_SPI 35 IRQ_TYPE_LEVEL_HIGH>;
 			reg-shift = <2>;
 			reg-io-width = <1>;
-			clocks = <&clk_gates1 10>;
+			clocks = <&mux_uart1>;
 			status = "disabled";
 		};
 
@@ -369,7 +369,7 @@
 			interrupts = <GIC_SPI 36 IRQ_TYPE_LEVEL_HIGH>;
 			reg-shift = <2>;
 			reg-io-width = <1>;
-			clocks = <&clk_gates1 12>;
+			clocks = <&mux_uart2>;
 			status = "disabled";
 		};
 
@@ -379,7 +379,7 @@
 			interrupts = <GIC_SPI 37 IRQ_TYPE_LEVEL_HIGH>;
 			reg-shift = <2>;
 			reg-io-width = <1>;
-			clocks = <&clk_gates1 14>;
+			clocks = <&mux_uart3>;
 			status = "disabled";
 		};
 
