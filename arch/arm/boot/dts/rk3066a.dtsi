@@ -94,6 +94,12 @@
 			clock-names = "timer", "pclk";
 		};
 
+		watchdog@2004c000 {
+			compatible = "snps,dw-apb-wdt";
+			reg = <0x2004c000 0x100>;
+			clocks = <&clk_gates7 15>;
+		};
+
 		pinctrl@20008000 {
 			compatible = "rockchip,rk3066a-pinctrl";
 			reg = <0x20008000 0x150>;
