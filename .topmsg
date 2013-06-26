@@ -1,0 +1,7 @@
+From: Heiko Stuebner <heiko@sntech.de>
+Subject: [PATCH] Collection of changes accepted for the next kernel release
+
+The changes in here are already accepted for the next merge window
+and made it into one of the different maintainer trees.
+
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
