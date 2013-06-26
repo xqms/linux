@@ -27,7 +27,7 @@
 		 */
 		dummy: dummy {
 			compatible = "fixed-clock";
-			clock-frequency = <0>;
+			clock-frequency = <18000000>;
 			#clock-cells = <0>;
 		};
 
