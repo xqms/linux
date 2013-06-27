@@ -19,6 +19,12 @@
 
 #define APBTMRS_REG_SIZE       0x14
 
+/* The IP uses two registers for count and values, to provide 64bit accuracy
+ * on 32bit platforms. The additional registers move the following registers
+ * down by 0x8 byte, as both the count and value registers are duplicated.
+ */
+#define APBTMR_QUIRK_TWO_VALUEREGS	BIT(0)
+
 struct dw_apb_timer {
 	void __iomem				*base;
 	unsigned long				freq;

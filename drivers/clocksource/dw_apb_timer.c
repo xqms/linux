@@ -51,11 +51,19 @@ clocksource_to_dw_apb_clocksource(struct clocksource *cs)
 
 static void apbt_init_regs(struct dw_apb_timer *timer, int quirks)
 {
-	timer->reg_load_count = APBTMR_N_LOAD_COUNT;
-	timer->reg_current_value = APBTMR_N_CURRENT_VALUE;
-	timer->reg_control = APBTMR_N_CONTROL;
-	timer->reg_eoi = APBTMR_N_EOI;
-	timer->reg_int_status = APBTMR_N_INT_STATUS;
+	if (quirks & APBTMR_QUIRK_TWO_VALUEREGS) {
+		timer->reg_load_count = APBTMR_N_LOAD_COUNT;
+		timer->reg_current_value = APBTMR_N_CURRENT_VALUE + 0x4;
+		timer->reg_control = APBTMR_N_CONTROL + 0x8;
+		timer->reg_eoi = APBTMR_N_EOI + 0x8;
+		timer->reg_int_status = APBTMR_N_INT_STATUS + 0x8;
+	} else {
+		timer->reg_load_count = APBTMR_N_LOAD_COUNT;
+		timer->reg_current_value = APBTMR_N_CURRENT_VALUE;
+		timer->reg_control = APBTMR_N_CONTROL;
+		timer->reg_eoi = APBTMR_N_EOI;
+		timer->reg_int_status = APBTMR_N_INT_STATUS;
+	}
 }
 
 static unsigned long apbt_readl(struct dw_apb_timer *timer, unsigned long offs)
@@ -145,6 +153,10 @@ static void apbt_set_mode(enum clock_event_mode mode,
 		udelay(1);
 		pr_debug("Setting clock period %lu for HZ %d\n", period, HZ);
 		apbt_writel(timer, period, timer->reg_load_count);
+
+		if (timer->quirks & APBTMR_QUIRK_TWO_VALUEREGS)
+			apbt_writel(timer, 0, timer->reg_load_count + 0x4);
+
 		ctrl |= APBTMR_CONTROL_ENABLE;
 		apbt_writel(timer, ctrl, timer->reg_control);
 		break;
@@ -168,6 +180,10 @@ static void apbt_set_mode(enum clock_event_mode mode,
 		 * running mode.
 		 */
 		apbt_writel(timer, ~0, timer->reg_load_count);
+
+		if (timer->quirks & APBTMR_QUIRK_TWO_VALUEREGS)
+			apbt_writel(timer, 0, timer->reg_load_count + 0x4);
+
 		ctrl &= ~APBTMR_CONTROL_INT;
 		ctrl |= APBTMR_CONTROL_ENABLE;
 		apbt_writel(timer, ctrl, timer->reg_control);
@@ -199,6 +215,10 @@ static int apbt_next_event(unsigned long delta,
 	apbt_writel(timer, ctrl, timer->reg_control);
 	/* write new count */
 	apbt_writel(timer, delta, timer->reg_load_count);
+
+	if (timer->quirks & APBTMR_QUIRK_TWO_VALUEREGS)
+		apbt_writel(timer, 0, timer->reg_load_count + 0x4);
+
 	ctrl |= APBTMR_CONTROL_ENABLE;
 	apbt_writel(timer, ctrl, timer->reg_control);
 
@@ -325,6 +345,10 @@ void dw_apb_clocksource_start(struct dw_apb_clocksource *dw_cs)
 	ctrl &= ~APBTMR_CONTROL_ENABLE;
 	apbt_writel(timer, ctrl, timer->reg_control);
 	apbt_writel(timer, ~0, timer->reg_load_count);
+
+	if (timer->quirks & APBTMR_QUIRK_TWO_VALUEREGS)
+		apbt_writel(timer, ~0, timer->reg_load_count + 0x4);
+
 	/* enable, mask interrupt */
 	ctrl &= ~APBTMR_CONTROL_MODE_PERIODIC;
 	ctrl |= (APBTMR_CONTROL_ENABLE | APBTMR_CONTROL_INT);
