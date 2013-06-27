@@ -24,6 +24,11 @@ struct dw_apb_timer {
 	unsigned long				freq;
 	int					irq;
 	int					quirks;
+	u8					reg_load_count;
+	u8					reg_current_value;
+	u8					reg_control;
+	u8					reg_eoi;
+	u8					reg_int_status;
 };
 
 struct dw_apb_clock_event_device {
