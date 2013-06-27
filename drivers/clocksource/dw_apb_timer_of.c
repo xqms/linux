@@ -38,6 +38,9 @@ static void timer_get_base_and_rate(struct device_node *np,
 
 	*quirks = 0;
 
+	if (of_device_is_compatible(np, "rockchip,rk3188-dw-apb-timer-osc"))
+		*quirks |= APBTMR_QUIRK_TWO_VALUEREGS;
+
 	/*
 	 * Not all implementations use a periphal clock, so don't panic
 	 * if it's not present
@@ -166,3 +169,4 @@ static void __init dw_apb_timer_init(struct device_node *timer)
 }
 CLOCKSOURCE_OF_DECLARE(pc3x2_timer, "picochip,pc3x2-timer", dw_apb_timer_init);
 CLOCKSOURCE_OF_DECLARE(apb_timer, "snps,dw-apb-timer-osc", dw_apb_timer_init);
+CLOCKSOURCE_OF_DECLARE(rk3188_timer, "rockchip,rk3188-dw-apb-timer-osc", dw_apb_timer_init);
