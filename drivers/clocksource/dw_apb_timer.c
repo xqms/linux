@@ -213,7 +213,8 @@ static int apbt_next_event(unsigned long delta,
  */
 struct dw_apb_clock_event_device *
 dw_apb_clockevent_init(int cpu, const char *name, unsigned rating,
-		       void __iomem *base, int irq, unsigned long freq)
+		       void __iomem *base, int irq, unsigned long freq,
+		       int quirks)
 {
 	struct dw_apb_clock_event_device *dw_ced =
 		kzalloc(sizeof(*dw_ced), GFP_KERNEL);
@@ -225,6 +226,7 @@ dw_apb_clockevent_init(int cpu, const char *name, unsigned rating,
 	dw_ced->timer.base = base;
 	dw_ced->timer.irq = irq;
 	dw_ced->timer.freq = freq;
+	dw_ced->timer.quirks = quirks;
 
 	clockevents_calc_mult_shift(&dw_ced->ced, freq, APBT_MIN_PERIOD);
 	dw_ced->ced.max_delta_ns = clockevent_delta2ns(0x7fffffff,
@@ -349,7 +351,7 @@ static void apbt_restart_clocksource(struct clocksource *cs)
  */
 struct dw_apb_clocksource *
 dw_apb_clocksource_init(unsigned rating, const char *name, void __iomem *base,
-			unsigned long freq)
+			unsigned long freq, int quirks)
 {
 	struct dw_apb_clocksource *dw_cs = kzalloc(sizeof(*dw_cs), GFP_KERNEL);
 
@@ -358,6 +360,7 @@ dw_apb_clocksource_init(unsigned rating, const char *name, void __iomem *base,
 
 	dw_cs->timer.base = base;
 	dw_cs->timer.freq = freq;
+	dw_cs->timer.quirks = quirks;
 	dw_cs->cs.name = name;
 	dw_cs->cs.rating = rating;
 	dw_cs->cs.read = __apbt_read_clocksource;

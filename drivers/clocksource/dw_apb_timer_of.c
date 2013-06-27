@@ -74,7 +74,7 @@ static void add_clockevent(struct device_node *event_timer)
 	timer_get_base_and_rate(event_timer, &iobase, &rate);
 
 	ced = dw_apb_clockevent_init(0, event_timer->name, 300, iobase, irq,
-				     rate);
+				     rate, 0);
 	if (!ced)
 		panic("Unable to initialise clockevent device");
 
@@ -92,7 +92,7 @@ static void add_clocksource(struct device_node *source_timer)
 
 	timer_get_base_and_rate(source_timer, &iobase, &rate);
 
-	cs = dw_apb_clocksource_init(300, source_timer->name, iobase, rate);
+	cs = dw_apb_clocksource_init(300, source_timer->name, iobase, rate, 0);
 	if (!cs)
 		panic("Unable to initialise clocksource device");
 
