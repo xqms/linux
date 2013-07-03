@@ -45,7 +45,7 @@ void irq_gc_mask_disable_reg(struct irq_data *d)
 }
 
 /**
- * irq_gc_mask_set_mask_bit - Mask chip via setting bit in mask register
+ * irq_gc_mask_set_bit - Mask chip via setting bit in mask register
  * @d: irq_data
  *
  * Chip has a single mask register. Values of this register are cached
@@ -62,9 +62,10 @@ void irq_gc_mask_set_bit(struct irq_data *d)
 	irq_reg_writel(*ct->mask_cache, gc->reg_base + ct->regs.mask);
 	irq_gc_unlock(gc);
 }
+EXPORT_SYMBOL_GPL(irq_gc_mask_set_bit);
 
 /**
- * irq_gc_mask_set_mask_bit - Mask chip via clearing bit in mask register
+ * irq_gc_mask_clr_bit - Mask chip via clearing bit in mask register
  * @d: irq_data
  *
  * Chip has a single mask register. Values of this register are cached
@@ -81,6 +82,7 @@ void irq_gc_mask_clr_bit(struct irq_data *d)
 	irq_reg_writel(*ct->mask_cache, gc->reg_base + ct->regs.mask);
 	irq_gc_unlock(gc);
 }
+EXPORT_SYMBOL_GPL(irq_gc_mask_clr_bit);
 
 /**
  * irq_gc_unmask_enable_reg - Unmask chip via enable register
@@ -115,6 +117,7 @@ void irq_gc_ack_set_bit(struct irq_data *d)
 	irq_reg_writel(mask, gc->reg_base + ct->regs.ack);
 	irq_gc_unlock(gc);
 }
+EXPORT_SYMBOL_GPL(irq_gc_ack_set_bit);
 
 /**
  * irq_gc_ack_clr_bit - Ack pending interrupt via clearing bit
@@ -164,7 +167,8 @@ void irq_gc_eoi(struct irq_data *d)
 
 /**
  * irq_gc_set_wake - Set/clr wake bit for an interrupt
- * @d: irq_data
+ * @d:  irq_data
+ * @on: Indicates whether the wake bit should be set or cleared
  *
  * For chips where the wake from suspend functionality is not
  * configured in a separate register and the wakeup active state is
@@ -254,6 +258,7 @@ irq_gc_init_mask_cache(struct irq_chip_generic *gc, enum irq_gc_flags flags)
  * @handler:		Default flow handler associated with these chips
  * @clr:		IRQ_* bits to clear in the mapping function
  * @set:		IRQ_* bits to set in the mapping function
+ * @gcflags:		Generic chip specific setup flags
  */
 int irq_alloc_domain_generic_chips(struct irq_domain *d, int irqs_per_chip,
 				   int num_ct, const char *name,
@@ -334,6 +339,69 @@ EXPORT_SYMBOL_GPL(irq_get_domain_generic_chip);
  * lock.
  */
 static struct lock_class_key irq_nested_lock_class;
+
+/*
+ * irq_map_generic_chip - Map a generic chip for an irq domain
+ */
+static int irq_map_generic_chip(struct irq_domain *d, unsigned int virq,
+				irq_hw_number_t hw_irq)
+{
+	struct irq_data *data = irq_get_irq_data(virq);
+	struct irq_domain_chip_generic *dgc = d->gc;
+	struct irq_chip_generic *gc;
+	struct irq_chip_type *ct;
+	struct irq_chip *chip;
+	unsigned long flags;
+	int idx;
+
+	if (!d->gc)
+		return -ENODEV;
+
+	idx = hw_irq / dgc->irqs_per_chip;
+	if (idx >= dgc->num_chips)
+		return -EINVAL;
+	gc = dgc->gc[idx];
+
+	idx = hw_irq % dgc->irqs_per_chip;
+
+	if (test_bit(idx, &gc->unused))
+		return -ENOTSUPP;
+
+	if (test_bit(idx, &gc->installed))
+		return -EBUSY;
+
+	ct = gc->chip_types;
+	chip = &ct->chip;
+
+	/* We only init the cache for the first mapping of a generic chip */
+	if (!gc->installed) {
+		raw_spin_lock_irqsave(&gc->lock, flags);
+		irq_gc_init_mask_cache(gc, dgc->gc_flags);
+		raw_spin_unlock_irqrestore(&gc->lock, flags);
+	}
+
+	/* Mark the interrupt as installed */
+	set_bit(idx, &gc->installed);
+
+	if (dgc->gc_flags & IRQ_GC_INIT_NESTED_LOCK)
+		irq_set_lockdep_class(virq, &irq_nested_lock_class);
+
+	if (chip->irq_calc_mask)
+		chip->irq_calc_mask(data);
+	else
+		data->mask = 1 << idx;
+
+	irq_set_chip_and_handler(virq, chip, ct->handler);
+	irq_set_chip_data(virq, gc);
+	irq_modify_status(virq, dgc->irq_flags_to_clear, dgc->irq_flags_to_set);
+	return 0;
+}
+
+struct irq_domain_ops irq_generic_chip_ops = {
+	.map	= irq_map_generic_chip,
+	.xlate	= irq_domain_xlate_onetwocell,
+};
+EXPORT_SYMBOL_GPL(irq_generic_chip_ops);
 
 /**
  * irq_map_generic_chip - Map a generic chip for an irq domain
@@ -447,7 +515,7 @@ EXPORT_SYMBOL_GPL(irq_setup_generic_chip);
 /**
  * irq_setup_alt_chip - Switch to alternative chip
  * @d:		irq_data for this interrupt
- * @type	Flow type to be initialized
+ * @type:	Flow type to be initialized
  *
  * Only to be called from chip->irq_set_type() callbacks.
  */
