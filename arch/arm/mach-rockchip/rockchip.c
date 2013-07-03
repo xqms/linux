@@ -26,14 +26,14 @@
 #include <asm/hardware/cache-l2x0.h>
 #include "core.h"
 
-extern int cclk_summary_show(void *data);
+//extern int cclk_summary_show(void *data);
 
 static void __init rockchip_timer_init(void)
 {
 	of_clk_init(NULL);
 	clocksource_of_init();
 
-cclk_summary_show(NULL);
+//cclk_summary_show(NULL);
 }
 
 static void __init rockchip_dt_init(void)
