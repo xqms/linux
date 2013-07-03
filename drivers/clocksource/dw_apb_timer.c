@@ -367,7 +367,7 @@ void dw_apb_clocksource_start(struct dw_apb_clocksource *dw_cs)
 	apbt_writel(timer, ~0, timer->reg_load_count);
 
 	if (timer->quirks & APBTMR_QUIRK_64BIT_COUNTER)
-		apbt_writel(timer, ~0, timer->reg_load_count + 0x4);
+		apbt_writel(timer, 0, timer->reg_load_count + 0x4);
 
 	/* set periodic, mask interrupt, enable timer */
 	ctrl &= ~APBTMR_CONTROL_MODE_PERIODIC;
