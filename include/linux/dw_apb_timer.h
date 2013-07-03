@@ -23,7 +23,7 @@
  * on 32bit platforms. The additional registers move the following registers
  * down by 0x8 byte, as both the count and value registers are duplicated.
  */
-#define APBTMR_QUIRK_TWO_VALUEREGS	BIT(0)
+#define APBTMR_QUIRK_64BIT_COUNTER	BIT(0)
 
 /* The IP does not provide a end-of-interrupt register to clear pending
  * interrupts, but requires to write a 1 to the interrupt-status register.

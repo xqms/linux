@@ -39,7 +39,7 @@ static void timer_get_base_and_rate(struct device_node *np,
 	*quirks = 0;
 
 	if (of_device_is_compatible(np, "rockchip,rk3188-dw-apb-timer-osc"))
-		*quirks |= (APBTMR_QUIRK_TWO_VALUEREGS | APBTMR_QUIRK_NO_EOI);
+		*quirks |= (APBTMR_QUIRK_64BIT_COUNTER | APBTMR_QUIRK_NO_EOI);
 
 	/*
 	 * Not all implementations use a periphal clock, so don't panic
@@ -116,7 +116,7 @@ static void add_clocksource(struct device_node *source_timer)
 	sched_io_base = iobase + 0x04;
 	sched_rate = rate;
 
-	if (sched_quirks & APBTMR_QUIRK_TWO_VALUEREGS)
+	if (sched_quirks & APBTMR_QUIRK_64BIT_COUNTER)
 		sched_io_base += 0x04;
 }
 

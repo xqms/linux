@@ -51,7 +51,7 @@ clocksource_to_dw_apb_clocksource(struct clocksource *cs)
 
 static void apbt_init_regs(struct dw_apb_timer *timer, int quirks)
 {
-	if (quirks & APBTMR_QUIRK_TWO_VALUEREGS) {
+	if (quirks & APBTMR_QUIRK_64BIT_COUNTER) {
 		timer->reg_load_count = APBTMR_N_LOAD_COUNT;
 		timer->reg_current_value = APBTMR_N_CURRENT_VALUE + 0x4;
 		timer->reg_control = APBTMR_N_CONTROL + 0x8;
@@ -162,7 +162,7 @@ static void apbt_set_mode(enum clock_event_mode mode,
 		pr_debug("Setting clock period %lu for HZ %d\n", period, HZ);
 		apbt_writel(timer, period, timer->reg_load_count);
 
-		if (timer->quirks & APBTMR_QUIRK_TWO_VALUEREGS)
+		if (timer->quirks & APBTMR_QUIRK_64BIT_COUNTER)
 			apbt_writel(timer, 0, timer->reg_load_count + 0x4);
 
 		ctrl |= APBTMR_CONTROL_ENABLE;
@@ -189,7 +189,7 @@ static void apbt_set_mode(enum clock_event_mode mode,
 		 */
 		apbt_writel(timer, ~0, timer->reg_load_count);
 
-		if (timer->quirks & APBTMR_QUIRK_TWO_VALUEREGS)
+		if (timer->quirks & APBTMR_QUIRK_64BIT_COUNTER)
 			apbt_writel(timer, 0, timer->reg_load_count + 0x4);
 
 		ctrl &= ~APBTMR_CONTROL_INT;
@@ -224,7 +224,7 @@ static int apbt_next_event(unsigned long delta,
 	/* write new count */
 	apbt_writel(timer, delta, timer->reg_load_count);
 
-	if (timer->quirks & APBTMR_QUIRK_TWO_VALUEREGS)
+	if (timer->quirks & APBTMR_QUIRK_64BIT_COUNTER)
 		apbt_writel(timer, 0, timer->reg_load_count + 0x4);
 
 	ctrl |= APBTMR_CONTROL_ENABLE;
@@ -357,7 +357,7 @@ void dw_apb_clocksource_start(struct dw_apb_clocksource *dw_cs)
 	apbt_writel(timer, ctrl, timer->reg_control);
 	apbt_writel(timer, ~0, timer->reg_load_count);
 
-	if (timer->quirks & APBTMR_QUIRK_TWO_VALUEREGS)
+	if (timer->quirks & APBTMR_QUIRK_64BIT_COUNTER)
 		apbt_writel(timer, ~0, timer->reg_load_count + 0x4);
 
 	/* enable, mask interrupt */
@@ -381,7 +381,7 @@ static cycle_t __apbt_read_clocksource(struct clocksource *cs)
 	/* temporary output to check if this is really a 64bit value spread
 	 * over two registers.
 	 */
-	if (timer->quirks & APBTMR_QUIRK_TWO_VALUEREGS) {
+	if (timer->quirks & APBTMR_QUIRK_64BIT_COUNTER) {
 		if (i > 100) {
 			printk("clocksource val0: %lu, val1: %lu\n", current_count,
 			       apbt_readl(timer, timer->reg_current_value + 0x04));
