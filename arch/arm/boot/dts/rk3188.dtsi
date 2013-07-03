@@ -1,7 +1,8 @@
 /*
+ * Copyright (c) 2013 Ulrich Prinz <ulrich.prinz@googlemail.com>
+ * based on rk3066.dtsi
  * Copyright (c) 2013 MundoReader S.L.
  * Author: Heiko Stuebner <heiko@sntech.de>
- * Author: Ulrich Prinz <ulrich.prinz@googlemail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -92,45 +93,60 @@
 			cache-level = <2>;
 		};
 
-		local-timer@1013c600 {	/* RK30_PTIMER_PHYS */
+		/* RK30_PTIMER_PHYS */
+		local-timer@1013c600 {	
 			compatible = "arm,cortex-a9-twd-timer";
+			/* compatible = "arm,armv7-timer"; */
 			reg = <0x1013c600 0x20>;
 			interrupts = <GIC_PPI 13 0x304>;
-			clocks = <&dummy150m>;
+			clocks = <&clk_gates0 0>;
 		};
 
-		timer@20038000 {	/* RK30_TIMER0_PHYS */
-			compatible = "snps,dw-apb-timer-osc";
+		/* RK30_TIMER6 - IRQ 96 */
+		timer6@200380A0 {
+			compatible = "rockchip,rk3188-dw-apb-timer-osc";
+			reg = <0x200380A0 0x20>;
+			interrupts = <GIC_SPI 64 IRQ_TYPE_LEVEL_HIGH>;
+			clocks = <&clk_gates3 14>, <&clk_gates7 7>;
+			clock-names = "timer", "pclk";
+		};
+ 
+		/* RK30_TIMER0 - IRQ 76 */
+		timer0@20038000 {
+			compatible = "rockchip,rk3188-dw-apb-timer-osc";
 			reg = <0x20038000 0x20>;
 			interrupts = <GIC_SPI 44 IRQ_TYPE_LEVEL_HIGH>;
 			clocks = <&clk_gates1 0>, <&clk_gates7 7>;
 			clock-names = "timer", "pclk";
 		};
 
-		timer@20038020 {	/* RK30_TIMER1_PHYS */
-			compatible = "snps,dw-apb-timer-osc";
+		/* RK30_TIMER1 - IRQ 77 */
+		timer1@20038020 {
+			compatible = "rockchip,rk3188-dw-apb-timer-osc";
 			reg = <0x20038020 0x20>;
 			interrupts = <GIC_SPI 45 IRQ_TYPE_LEVEL_HIGH>;
 			clocks = <&clk_gates1 1>, <&clk_gates7 7>;
 			clock-names = "timer", "pclk";
 		};
 
-		timer@20038100 {	/* RK30_TIMER6_PHYS */
-			compatible = "snps,dw-apb-timer-osc";
-			reg = <0x20038100 0x20>;
-			interrupts = <GIC_SPI 64 IRQ_TYPE_LEVEL_HIGH>;
-			clocks = <&clk_gates3 14>, <&clk_gates7 7>;
+		/* RK30_TIMER2 - IRQ 91 */
+		timer3@20038060 {
+			compatible = "rockchip,rk3188-dw-apb-timer-osc";
+			reg = <0x20038060 0x20>;
+			interrupts = <GIC_SPI 59 IRQ_TYPE_LEVEL_HIGH>;
+			clocks = <&clk_gates1 1>, <&clk_gates7 7>;
 			clock-names = "timer", "pclk";
 		};
 
-/*		timer@2000e000 {	/* RK3188_TIMER3_PHYS */
-/*			compatible = "snps,dw-apb-timer-osc";
-			reg = <0x2000e000 0x100>;
-			interrupts = <GIC_SPI 58 IRQ_TYPE_LEVEL_HIGH>;
-			clocks = <&clk_gates1 2>, <&clk_gates7 9>;
+		/* RK30_TIMER4 - IRQ 92 */
+		timer4@20038080 {
+			compatible = "rockchip,rk3188-dw-apb-timer-osc";
+			reg = <0x20038080 0x20>;
+			interrupts = <GIC_SPI 60 IRQ_TYPE_LEVEL_HIGH>;
+			clocks = <&clk_gates1 1>, <&clk_gates7 7>;
 			clock-names = "timer", "pclk";
 		};
-*/
+
 		watchdog@2004c000 {
 			compatible = "snps,dw-apb-wdt";
 			reg = <0x2004c000 0x100>;
@@ -138,15 +154,15 @@
 		};
 
 		pinctrl@20008000 {
-			compatible = "rockchip,rk3066a-pinctrl";
+			compatible = "rockchip,rk3188-pinctrl";
 			reg = <0x20008000 0x150>;
 			#address-cells = <1>;
 			#size-cells = <1>;
 			ranges;
 
-			gpio0: gpio0@20034000 {
+			gpio0: gpio0@0x2000a000 {
 				compatible = "rockchip,gpio-bank";
-				reg = <0x20034000 0x100>;
+				reg = <0x2000a000 0x100>;
 				interrupts = <GIC_SPI 54 IRQ_TYPE_LEVEL_HIGH>;
 				clocks = <&clk_gates8 9>;
 
@@ -157,7 +173,7 @@
 				#interrupt-cells = <2>;
 			};
 
-			gpio1: gpio1@2003c000 {
+			gpio1: gpio1@0x2003c000 {
 				compatible = "rockchip,gpio-bank";
 				reg = <0x2003c000 0x100>;
 				interrupts = <GIC_SPI 55 IRQ_TYPE_LEVEL_HIGH>;
@@ -344,8 +360,7 @@
 			interrupts = <GIC_SPI 34 IRQ_TYPE_LEVEL_HIGH>;
 			reg-shift = <2>;
 			reg-io-width = <1>;
-			clocks = <&clk_gates1 8>;
-			status = "disabled";
+			clocks = <&mux_uart0>;
 		};
 
 		uart1: serial@10126000 {
@@ -354,7 +369,7 @@
 			interrupts = <GIC_SPI 35 IRQ_TYPE_LEVEL_HIGH>;
 			reg-shift = <2>;
 			reg-io-width = <1>;
-			clocks = <&clk_gates1 10>;
+			clocks = <&mux_uart1>;
 			status = "disabled";
 		};
 
@@ -364,7 +379,7 @@
 			interrupts = <GIC_SPI 36 IRQ_TYPE_LEVEL_HIGH>;
 			reg-shift = <2>;
 			reg-io-width = <1>;
-			clocks = <&clk_gates1 12>;
+			clocks = <&mux_uart2>;
 			status = "disabled";
 		};
 
@@ -374,7 +389,7 @@
 			interrupts = <GIC_SPI 37 IRQ_TYPE_LEVEL_HIGH>;
 			reg-shift = <2>;
 			reg-io-width = <1>;
-			clocks = <&clk_gates1 14>;
+			clocks = <&mux_uart3>;
 			status = "disabled";
 		};
 
