@@ -123,14 +123,14 @@ static irqreturn_t dw_apb_clockevent_irq(int irq, void *data)
 	return IRQ_HANDLED;
 }
 
-static void apbt_enable_int(struct dw_apb_timer *timer)
+static void apbt_enable_int(struct dw_apb_clock_event_device *dw_ced)
 {
+	struct dw_apb_timer *timer = &dw_ced->timer;
 	unsigned long ctrl = apbt_readl(timer, timer->reg_control);
+
 	/* clear pending intr */
-	if (timer->quirks & APBTMR_QUIRK_NO_EOI)
-		apbt_writel(timer, 1, timer->reg_int_status);
-	else
-		apbt_readl(timer, timer->reg_eoi);
+	dw_ced->eoi(timer);
+	/* enable interrupt */
 	ctrl &= ~APBTMR_CONTROL_INT;
 	apbt_writel(timer, ctrl, timer->reg_control);
 }
@@ -205,7 +205,7 @@ static void apbt_set_mode(enum clock_event_mode mode,
 		break;
 
 	case CLOCK_EVT_MODE_RESUME:
-		apbt_enable_int(timer);
+		apbt_enable_int(dw_ced);
 		break;
 	}
 }
@@ -333,7 +333,7 @@ void dw_apb_clockevent_register(struct dw_apb_clock_event_device *dw_ced)
 
 	apbt_writel(timer, 0, timer->reg_control);
 	clockevents_register_device(&dw_ced->ced);
-	apbt_enable_int(timer);
+	apbt_enable_int(dw_ced);
 }
 
 /**
