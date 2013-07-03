@@ -36,6 +36,12 @@
  */
 #define APBTMR_QUIRK_INVERSE_INTMASK	BIT(2)
 
+/* The IP uses inverted logic for the bit setting periodic mode.
+ * Periodic means it times out after the period is over and is set to
+ * 1 in the original IP. This IP uses 1 for free running mode.
+ */
+#define APBTMR_QUIRK_INVERSE_PERIODIC	BIT(3)
+
 struct dw_apb_timer {
 	void __iomem				*base;
 	unsigned long				freq;
