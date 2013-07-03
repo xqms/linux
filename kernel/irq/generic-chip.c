@@ -404,66 +404,6 @@ struct irq_domain_ops irq_generic_chip_ops = {
 EXPORT_SYMBOL_GPL(irq_generic_chip_ops);
 
 /**
- * irq_map_generic_chip - Map a generic chip for an irq domain
- */
-static int irq_map_generic_chip(struct irq_domain *d, unsigned int virq,
-				irq_hw_number_t hw_irq)
-{
-	struct irq_data *data = irq_get_irq_data(virq);
-	struct irq_domain_chip_generic *dgc = d->gc;
-	struct irq_chip_generic *gc;
-	struct irq_chip_type *ct;
-	struct irq_chip *chip;
-	unsigned long flags;
-	int idx;
-
-	if (!d->gc)
-		return -ENODEV;
-
-	idx = hw_irq / dgc->irqs_per_chip;
-	if (idx >= dgc->num_chips)
-		return -EINVAL;
-	gc = dgc->gc[idx];
-
-	idx = hw_irq % dgc->irqs_per_chip;
-
-	if (test_bit(idx, &gc->installed))
-		return -EBUSY;
-
-	ct = gc->chip_types;
-	chip = &ct->chip;
-
-	/* We only init the cache for the first mapping of a generic chip */
-	if (!gc->installed) {
-		raw_spin_lock_irqsave(&gc->lock, flags);
-		irq_gc_init_mask_cache(gc, dgc->gc_flags);
-		raw_spin_unlock_irqrestore(&gc->lock, flags);
-	}
-
-	/* Mark the interrupt as installed */
-	set_bit(idx, &gc->installed);
-
-	if (dgc->gc_flags & IRQ_GC_INIT_NESTED_LOCK)
-		irq_set_lockdep_class(virq, &irq_nested_lock_class);
-
-	if (chip->irq_calc_mask)
-		chip->irq_calc_mask(data);
-	else
-		data->mask = 1 << idx;
-
-	irq_set_chip_and_handler(virq, chip, ct->handler);
-	irq_set_chip_data(virq, gc);
-	irq_modify_status(virq, dgc->irq_flags_to_clear, dgc->irq_flags_to_set);
-	return 0;
-}
-
-struct irq_domain_ops irq_generic_chip_ops = {
-	.map = irq_map_generic_chip,
-	.xlate = irq_domain_xlate_onecell,
-};
-EXPORT_SYMBOL_GPL(irq_generic_chip_ops);
-
-/**
  * irq_setup_generic_chip - Setup a range of interrupts with a generic chip
  * @gc:		Generic irq chip holding all data
  * @msk:	Bitmask holding the irqs to initialize relative to gc->irq_base
