@@ -360,7 +360,7 @@
 			interrupts = <GIC_SPI 34 IRQ_TYPE_LEVEL_HIGH>;
 			reg-shift = <2>;
 			reg-io-width = <1>;
-			clocks = <&mux_uart0>;
+			clocks = <&clk_gates1 8>;
 		};
 
 		uart1: serial@10126000 {
@@ -369,7 +369,7 @@
 			interrupts = <GIC_SPI 35 IRQ_TYPE_LEVEL_HIGH>;
 			reg-shift = <2>;
 			reg-io-width = <1>;
-			clocks = <&mux_uart1>;
+			clocks = <&clk_gates1 10>;
 			status = "disabled";
 		};
 
@@ -379,7 +379,7 @@
 			interrupts = <GIC_SPI 36 IRQ_TYPE_LEVEL_HIGH>;
 			reg-shift = <2>;
 			reg-io-width = <1>;
-			clocks = <&mux_uart2>;
+			clocks = <&clk_gates1 12>;
 			status = "disabled";
 		};
 
@@ -389,7 +389,7 @@
 			interrupts = <GIC_SPI 37 IRQ_TYPE_LEVEL_HIGH>;
 			reg-shift = <2>;
 			reg-io-width = <1>;
-			clocks = <&mux_uart3>;
+			clocks = <&clk_gates1 14>;
 			status = "disabled";
 		};
 
