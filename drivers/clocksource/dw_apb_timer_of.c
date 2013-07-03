@@ -39,7 +39,9 @@ static void timer_get_base_and_rate(struct device_node *np,
 	*quirks = 0;
 
 	if (of_device_is_compatible(np, "rockchip,rk3188-dw-apb-timer-osc"))
-		*quirks |= (APBTMR_QUIRK_64BIT_COUNTER | APBTMR_QUIRK_NO_EOI);
+		*quirks |= (APBTMR_QUIRK_64BIT_COUNTER | APBTMR_QUIRK_NO_EOI 
+				| APBTMR_QUIRK_INVERSE_INTMASK
+			);
 
 	/*
 	 * Not all implementations use a periphal clock, so don't panic

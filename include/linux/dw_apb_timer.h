@@ -30,6 +30,12 @@
  */
 #define APBTMR_QUIRK_NO_EOI			BIT(1)
 
+/* The IP uses an inverted interrupt-mask bit. 
+ * Instead of activating interrupts clearing a maks bit, it needs an enable
+ * bit to be set 1.
+ */
+#define APBTMR_QUIRK_INVERSE_INTMASK	BIT(2)
+
 struct dw_apb_timer {
 	void __iomem				*base;
 	unsigned long				freq;

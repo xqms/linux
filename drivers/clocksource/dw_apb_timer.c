@@ -81,7 +81,10 @@ static void apbt_disable_int(struct dw_apb_timer *timer)
 {
 	unsigned long ctrl = apbt_readl(timer, timer->reg_control);
 
-	ctrl |= APBTMR_CONTROL_INT;
+	if (timer->quirks & APBTMR_QUIRK_INVERSE_INTMASK)
+		ctrl &= ~APBTMR_CONTROL_INT;
+	else
+		ctrl |= APBTMR_CONTROL_INT;
 	apbt_writel(timer, ctrl, timer->reg_control);
 }
 
@@ -131,7 +134,10 @@ static void apbt_enable_int(struct dw_apb_clock_event_device *dw_ced)
 	/* clear pending intr */
 	dw_ced->eoi(timer);
 	/* enable interrupt */
-	ctrl &= ~APBTMR_CONTROL_INT;
+	if (timer->quirks & APBTMR_QUIRK_INVERSE_INTMASK)
+		ctrl |= APBTMR_CONTROL_INT;
+	else
+		ctrl &= ~APBTMR_CONTROL_INT;
 	apbt_writel(timer, ctrl, timer->reg_control);
 }
 
@@ -192,7 +198,10 @@ static void apbt_set_mode(enum clock_event_mode mode,
 		if (timer->quirks & APBTMR_QUIRK_64BIT_COUNTER)
 			apbt_writel(timer, 0, timer->reg_load_count + 0x4);
 
-		ctrl &= ~APBTMR_CONTROL_INT;
+		if (timer->quirks & APBTMR_QUIRK_INVERSE_INTMASK)
+			ctrl |= APBTMR_CONTROL_INT;
+		else
+			ctrl &= ~APBTMR_CONTROL_INT;
 		ctrl |= APBTMR_CONTROL_ENABLE;
 		apbt_writel(timer, ctrl, timer->reg_control);
 		break;
@@ -360,9 +369,13 @@ void dw_apb_clocksource_start(struct dw_apb_clocksource *dw_cs)
 	if (timer->quirks & APBTMR_QUIRK_64BIT_COUNTER)
 		apbt_writel(timer, ~0, timer->reg_load_count + 0x4);
 
-	/* enable, mask interrupt */
+	/* set periodic, mask interrupt, enable timer */
 	ctrl &= ~APBTMR_CONTROL_MODE_PERIODIC;
-	ctrl |= (APBTMR_CONTROL_ENABLE | APBTMR_CONTROL_INT);
+	if (timer->quirks & APBTMR_QUIRK_INVERSE_INTMASK)
+		ctrl &= APBTMR_CONTROL_INT;
+	else
+		ctrl |= APBTMR_CONTROL_INT;
+	ctrl |= APBTMR_CONTROL_ENABLE;
 	apbt_writel(timer, ctrl, timer->reg_control);
 	/* read it once to get cached counter value initialized */
 	dw_apb_clocksource_read(dw_cs);
