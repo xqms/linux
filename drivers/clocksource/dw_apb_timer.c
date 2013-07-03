@@ -388,30 +388,13 @@ void dw_apb_clocksource_start(struct dw_apb_clocksource *dw_cs)
 	dw_apb_clocksource_read(dw_cs);
 }
 
-static int i;
 static cycle_t __apbt_read_clocksource(struct clocksource *cs)
 {
-	unsigned long current_count;
 	struct dw_apb_clocksource *dw_cs =
 		clocksource_to_dw_apb_clocksource(cs);
 	struct dw_apb_timer *timer = &dw_cs->timer;
 
-	current_count = apbt_readl(timer, timer->reg_current_value);
-
-	/* temporary output to check if this is really a 64bit value spread
-	 * over two registers.
-	 */
-	if (timer->quirks & APBTMR_QUIRK_64BIT_COUNTER) {
-		if (i > 100) {
-			printk("clocksource val0: %lu, val1: %lu\n", current_count,
-			       apbt_readl(timer, timer->reg_current_value + 0x04));
-
-			i = 0;
-		}
-		i++;
-	}
-
-	return (cycle_t)~current_count;
+	return (cycle_t)~apbt_readl(timer, timer->reg_current_value);
 }
 
 static void apbt_restart_clocksource(struct clocksource *cs)
