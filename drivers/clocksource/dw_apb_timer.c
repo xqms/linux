@@ -156,7 +156,11 @@ static void apbt_set_mode(enum clock_event_mode mode,
 	case CLOCK_EVT_MODE_PERIODIC:
 		period = DIV_ROUND_UP(timer->freq, HZ);
 		ctrl = apbt_readl(timer, timer->reg_control);
-		ctrl |= APBTMR_CONTROL_MODE_PERIODIC;
+
+		if (timer->quirks & APBTMR_QUIRK_INVERSE_PERIODIC)
+			ctrl &= ~APBTMR_CONTROL_MODE_PERIODIC;
+		else
+			ctrl |= APBTMR_CONTROL_MODE_PERIODIC;
 		apbt_writel(timer, ctrl, timer->reg_control);
 		/*
 		 * DW APB p. 46, have to disable timer before load counter,
@@ -183,7 +187,10 @@ static void apbt_set_mode(enum clock_event_mode mode,
 		 * the next event, therefore emulate the one-shot mode.
 		 */
 		ctrl &= ~APBTMR_CONTROL_ENABLE;
-		ctrl &= ~APBTMR_CONTROL_MODE_PERIODIC;
+		if (timer->quirks & APBTMR_QUIRK_INVERSE_PERIODIC)
+			ctrl |= APBTMR_CONTROL_MODE_PERIODIC;
+		else
+			ctrl &= ~APBTMR_CONTROL_MODE_PERIODIC;
 
 		apbt_writel(timer, ctrl, timer->reg_control);
 		/* write again to set free running mode */
