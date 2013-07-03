@@ -128,6 +128,7 @@ static u32 read_sched_clock(void)
 static const struct of_device_id sptimer_ids[] __initconst = {
 	{ .compatible = "picochip,pc3x2-rtc" },
 	{ .compatible = "snps,dw-apb-timer-sp" },
+	{ .compatible = "rockchip,rk3188-dw-apb-timer-osc" },
 	{ /* Sentinel */ },
 };
 
