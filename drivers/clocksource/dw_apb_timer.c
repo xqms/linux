@@ -372,7 +372,7 @@ void dw_apb_clocksource_start(struct dw_apb_clocksource *dw_cs)
 	/* set periodic, mask interrupt, enable timer */
 	ctrl &= ~APBTMR_CONTROL_MODE_PERIODIC;
 	if (timer->quirks & APBTMR_QUIRK_INVERSE_INTMASK)
-		ctrl &= APBTMR_CONTROL_INT;
+		ctrl &= ~APBTMR_CONTROL_INT;
 	else
 		ctrl |= APBTMR_CONTROL_INT;
 	ctrl |= APBTMR_CONTROL_ENABLE;
