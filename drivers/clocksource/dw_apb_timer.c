@@ -101,6 +101,11 @@ static void apbt_eoi(struct dw_apb_timer *timer)
 	apbt_readl(timer, timer->reg_eoi);
 }
 
+static void apbt_eoi_int_status(struct dw_apb_timer *timer)
+{
+  apbt_writel(timer, 1, timer->reg_int_status);
+}
+
 static irqreturn_t dw_apb_clockevent_irq(int irq, void *data)
 {
 	struct clock_event_device *evt = data;
@@ -122,7 +127,10 @@ static void apbt_enable_int(struct dw_apb_timer *timer)
 {
 	unsigned long ctrl = apbt_readl(timer, timer->reg_control);
 	/* clear pending intr */
-	apbt_readl(timer, timer->reg_eoi);
+	if (timer->quirks & APBTMR_QUIRK_NO_EOI)
+		apbt_writel(timer, 1, timer->reg_int_status);
+	else
+		apbt_readl(timer, timer->reg_eoi);
 	ctrl &= ~APBTMR_CONTROL_INT;
 	apbt_writel(timer, ctrl, timer->reg_control);
 }
@@ -280,7 +288,10 @@ dw_apb_clockevent_init(int cpu, const char *name, unsigned rating,
 					  IRQF_NOBALANCING |
 					  IRQF_DISABLED;
 
-	dw_ced->eoi = apbt_eoi;
+	if (quirks & APBTMR_QUIRK_NO_EOI)
+		dw_ced->eoi = apbt_eoi_int_status;
+	else
+		dw_ced->eoi = apbt_eoi;
 	err = setup_irq(irq, &dw_ced->irqaction);
 	if (err) {
 		pr_err("failed to request timer irq\n");

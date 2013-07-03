@@ -25,6 +25,11 @@
  */
 #define APBTMR_QUIRK_TWO_VALUEREGS	BIT(0)
 
+/* The IP does not provide a end-of-interrupt register to clear pending
+ * interrupts, but requires to write a 1 to the interrupt-status register.
+ */
+#define APBTMR_QUIRK_NO_EOI			BIT(1)
+
 struct dw_apb_timer {
 	void __iomem				*base;
 	unsigned long				freq;
