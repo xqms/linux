@@ -91,7 +91,6 @@ static void add_clockevent(struct device_node *event_timer)
 
 static void __iomem *sched_io_base;
 static u32 sched_rate;
-static int sched_quirks;
 
 static void add_clocksource(struct device_node *source_timer)
 {
@@ -118,7 +117,7 @@ static void add_clocksource(struct device_node *source_timer)
 	sched_io_base = iobase + 0x04;
 	sched_rate = rate;
 
-	if (sched_quirks & APBTMR_QUIRK_64BIT_COUNTER)
+	if (quirks & APBTMR_QUIRK_64BIT_COUNTER)
 		sched_io_base += 0x04;
 }
 
