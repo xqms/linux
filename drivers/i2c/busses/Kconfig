@@ -628,6 +628,12 @@ config I2C_PXA_SLAVE
 	  is necessary for systems where the PXA may be a target on the
 	  I2C bus.
 
+config I2C_ROCKCHIP
+	tristate "Rockchip I2C Driver"
+	help
+	  Say Y here to include support for the I2C controllers in
+	  Rockchip SoCs.
+
 config HAVE_S3C2410_I2C
 	bool
 	help
