@@ -105,7 +105,7 @@
 		samsung,i2c-max-bus-freq = <66000>;
 
 		hdmiddc@50 {
-			compatible = "samsung,exynos5-hdmiddc";
+			compatible = "samsung,exynos4210-hdmiddc";
 			reg = <0x50>;
 		};
 	};
@@ -135,7 +135,7 @@
 		samsung,i2c-max-bus-freq = <66000>;
 
 		hdmiphy@38 {
-			compatible = "samsung,exynos5-hdmiphy";
+			compatible = "samsung,exynos4212-hdmiphy";
 			reg = <0x38>;
 		};
 	};
@@ -250,7 +250,7 @@
 		samsung,vbus-gpio = <&gpx2 6 0>;
 	};
 
-	dp-controller {
+	dp-controller@145B0000 {
 		samsung,color-space = <0>;
 		samsung,dynamic-range = <0>;
 		samsung,ycbcr-coeff = <0>;
@@ -260,21 +260,25 @@
 
 		pinctrl-names = "default";
 		pinctrl-0 = <&dp_hpd>;
+		status = "okay";
 	};
 
-	display-timings {
-		native-mode = <&timing0>;
-		timing0: timing@0 {
-			/* 1280x800 */
-			clock-frequency = <50000>;
-			hactive = <1280>;
-			vactive = <800>;
-			hfront-porch = <4>;
-			hback-porch = <4>;
-			hsync-len = <4>;
-			vback-porch = <4>;
-			vfront-porch = <4>;
-			vsync-len = <4>;
+	fimd@14400000 {
+		status = "okay";
+		display-timings {
+			native-mode = <&timing0>;
+			timing0: timing@0 {
+				/* 1280x800 */
+				clock-frequency = <50000>;
+				hactive = <1280>;
+				vactive = <800>;
+				hfront-porch = <4>;
+				hback-porch = <4>;
+				hsync-len = <4>;
+				vback-porch = <4>;
+				vfront-porch = <4>;
+				vsync-len = <4>;
+			};
 		};
 	};
 

@@ -39,12 +39,14 @@ src-perf := $(srctree)/tools/perf
 endif
 
 ifeq ($(obj-perf),)
-obj-perf := $(objtree)
+obj-perf := $(OUTPUT)
 endif
 
 ifneq ($(obj-perf),)
 obj-perf := $(abspath $(obj-perf))/
 endif
+
+LIB_INCLUDE := $(srctree)/tools/lib/
 
 # include ARCH specific config
 -include $(src-perf)/arch/$(ARCH)/Makefile
@@ -85,7 +87,7 @@ CFLAGS += -Wall
 CFLAGS += -Wextra
 CFLAGS += -std=gnu99
 
-EXTLIBS = -lpthread -lrt -lelf -lm
+EXTLIBS = -lelf -lpthread -lrt -lm
 
 ifeq ($(call try-cc,$(SOURCE_HELLO),$(CFLAGS) -Werror -fstack-protector-all,-fstack-protector-all),y)
   CFLAGS += -fstack-protector-all
@@ -121,8 +123,7 @@ endif
 
 CFLAGS += -I$(src-perf)/util
 CFLAGS += -I$(src-perf)
-CFLAGS += -I$(TRACE_EVENT_DIR)
-CFLAGS += -I$(srctree)/tools/lib/
+CFLAGS += -I$(LIB_INCLUDE)
 
 CFLAGS += -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE
 
@@ -165,7 +166,7 @@ else
     LIBDW_LDFLAGS := -L$(LIBDW_DIR)/lib
   endif
 
-  FLAGS_DWARF=$(CFLAGS) $(LIBDW_CFLAGS) -ldw -lelf $(LIBDW_LDFLAGS) $(LDFLAGS) $(EXTLIBS)
+  FLAGS_DWARF=$(CFLAGS) $(LIBDW_CFLAGS) -ldw -lz -lelf $(LIBDW_LDFLAGS) $(LDFLAGS) $(EXTLIBS)
   ifneq ($(call try-cc,$(SOURCE_DWARF),$(FLAGS_DWARF),libdw),y)
     msg := $(warning No libdw.h found or old libdw.h found or elfutils is older than 0.138, disables dwarf support. Please install new elfutils-devel/libdw-dev);
     NO_DWARF := 1

@@ -53,7 +53,7 @@ incompatible change are allowed.  However, there is an extension
 facility that allows backward-compatible extensions to the API to be
 queried and used.
 
-The extension mechanism is not based on on the Linux version number.
+The extension mechanism is not based on the Linux version number.
 Instead, kvm defines extension identifiers and a facility to query
 whether a particular extension identifier is available.  If it is, a
 set of ioctls is available for application use.
@@ -1684,7 +1684,7 @@ The parameter is defined like this:
 
 This ioctl maps the memory at "user_addr" with the length "length" to
 the vcpu's address space starting at "vcpu_addr". All parameters need to
-be alligned by 1 megabyte.
+be aligned by 1 megabyte.
 
 
 4.66 KVM_S390_UCAS_UNMAP
@@ -1704,7 +1704,7 @@ The parameter is defined like this:
 
 This ioctl unmaps the memory in the vcpu's address space starting at
 "vcpu_addr" with the length "length". The field "user_addr" is ignored.
-All parameters need to be alligned by 1 megabyte.
+All parameters need to be aligned by 1 megabyte.
 
 
 4.67 KVM_S390_VCPU_FAULT
@@ -1989,7 +1989,7 @@ Returns: 0 on success, -1 on error
 
 This populates and returns a structure describing the features of
 the "Server" class MMU emulation supported by KVM.
-This can in turn be used by userspace to generate the appropariate
+This can in turn be used by userspace to generate the appropriate
 device-tree properties for the guest operating system.
 
 The structure contains some global informations, followed by an
@@ -2036,7 +2036,7 @@ be OR'ed into the "vsid" argument of the slbmte instruction.
 The "enc" array is a list which for each of those segment base page
 size provides the list of supported actual page sizes (which can be
 only larger or equal to the base page size), along with the
-corresponding encoding in the hash PTE. Similarily, the array is
+corresponding encoding in the hash PTE. Similarly, the array is
 8 entries sorted by increasing sizes and an entry with a "0" shift
 is an empty entry and a terminator:
 
@@ -2278,7 +2278,7 @@ return indicates the attribute is implemented.  It does not necessarily
 indicate that the attribute can be read or written in the device's
 current state.  "addr" is ignored.
 
-4.77 KVM_ARM_VCPU_INIT
+4.82 KVM_ARM_VCPU_INIT
 
 Capability: basic
 Architectures: arm, arm64
@@ -2304,7 +2304,7 @@ Possible features:
 	  Depends on KVM_CAP_ARM_EL1_32BIT (arm64 only).
 
 
-4.78 KVM_GET_REG_LIST
+4.83 KVM_GET_REG_LIST
 
 Capability: basic
 Architectures: arm, arm64
@@ -2324,7 +2324,7 @@ This ioctl returns the guest registers that are supported for the
 KVM_GET_ONE_REG/KVM_SET_ONE_REG calls.
 
 
-4.80 KVM_ARM_SET_DEVICE_ADDR
+4.84 KVM_ARM_SET_DEVICE_ADDR
 
 Capability: KVM_CAP_ARM_SET_DEVICE_ADDR
 Architectures: arm, arm64
@@ -2362,7 +2362,7 @@ must be called after calling KVM_CREATE_IRQCHIP, but before calling
 KVM_RUN on any of the VCPUs.  Calling this ioctl twice for any of the
 base addresses will return -EEXIST.
 
-4.82 KVM_PPC_RTAS_DEFINE_TOKEN
+4.85 KVM_PPC_RTAS_DEFINE_TOKEN
 
 Capability: KVM_CAP_PPC_RTAS
 Architectures: ppc
