@@ -149,7 +149,6 @@ static int sram_probe(struct platform_device *pdev)
 					(unsigned long)virt_base + cur_start,
 					res->start + cur_start, cur_size, -1);
 		}
-
 	}
 
 	platform_set_drvdata(pdev, sram);

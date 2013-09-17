@@ -23,7 +23,6 @@ config ARM64
 	select HAVE_DMA_API_DEBUG
 	select HAVE_DMA_ATTRS
 	select HAVE_GENERIC_DMA_COHERENT
-	select HAVE_GENERIC_HARDIRQS
 	select HAVE_HW_BREAKPOINT if PERF_EVENTS
 	select HAVE_MEMBLOCK
 	select HAVE_PERF_EVENTS
@@ -95,6 +94,9 @@ config SWIOTLB
 
 config IOMMU_HELPER
 	def_bool SWIOTLB
+
+config KERNEL_MODE_NEON
+	def_bool y
 
 source "init/Kconfig"
 
@@ -269,6 +271,8 @@ source "net/Kconfig"
 source "drivers/Kconfig"
 
 source "fs/Kconfig"
+
+source "arch/arm64/kvm/Kconfig"
 
 source "arch/arm64/Kconfig.debug"
 

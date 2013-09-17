@@ -104,7 +104,7 @@ static unsigned long clk_divider_recalc_rate(struct clk_hw *hw,
 	struct clk_divider *divider = to_clk_divider(hw);
 	unsigned int div, val;
 
-	val = readl(divider->reg) >> divider->shift;
+	val = clk_readl(divider->reg) >> divider->shift;
 	val &= divider->mask;
 
 	div = _get_div(divider, val);
@@ -230,11 +230,11 @@ static int clk_divider_set_rate(struct clk_hw *hw, unsigned long rate,
 	if (divider->flags & CLK_DIVIDER_HIWORD_MASK) {
 		val = divider->mask << (divider->shift + 16);
 	} else {
-		val = readl(divider->reg);
+		val = clk_readl(divider->reg);
 		val &= ~(divider->mask << divider->shift);
 	}
 	val |= value << divider->shift;
-	writel(val, divider->reg);
+	clk_writel(val, divider->reg);
 
 	if (divider->lock)
 		spin_unlock_irqrestore(divider->lock, flags);
@@ -318,6 +318,7 @@ struct clk *clk_register_divider(struct device *dev, const char *name,
 	return _register_divider(dev, name, parent_name, flags, reg, shift,
 			((1 << width) - 1), clk_divider_flags, NULL, lock);
 }
+EXPORT_SYMBOL_GPL(clk_register_divider);
 
 /**
  * clk_register_divider_table - register a table based divider clock with
@@ -342,6 +343,7 @@ struct clk *clk_register_divider_table(struct device *dev, const char *name,
 	return _register_divider(dev, name, parent_name, flags, reg, shift,
 			((1 << width) - 1), clk_divider_flags, table, lock);
 }
+EXPORT_SYMBOL_GPL(clk_register_divider_table);
 
 #ifdef CONFIG_OF
 struct clk_div_table *of_clk_get_div_table(struct device_node *node)

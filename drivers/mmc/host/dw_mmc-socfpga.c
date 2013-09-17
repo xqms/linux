@@ -1,5 +1,6 @@
 /*
- * Altera SoCFPGA Specific Extensions for Synopsys DW Multimedia Card Interface driver
+ * Altera SoCFPGA Specific Extensions for Synopsys DW Multimedia Card Interface
+ * driver
  *
  *  Copyright (C) 2012, Samsung Electronics Co., Ltd.
  *  Copyright (C) 2013 Altera Corporation
@@ -60,7 +61,8 @@ static int dw_mci_socfpga_setup_clock(struct dw_mci *host)
 	struct dw_mci_socfpga_priv_data *priv = host->priv;
 
 	clk_disable_unprepare(host->ciu_clk);
-	regmap_write(priv->sysreg, SYSMGR_SDMMCGRP_CTRL_OFFSET, priv->hs_timing);
+	regmap_write(priv->sysreg, SYSMGR_SDMMCGRP_CTRL_OFFSET,
+		priv->hs_timing);
 	clk_prepare_enable(host->ciu_clk);
 
 	host->bus_hz /= (priv->ciu_div + 1);
