@@ -13,7 +13,6 @@
  *
  */
 
-#include <linux/of_i2c.h>
 
 //old includes, to check
 #include <linux/uaccess.h>
@@ -252,7 +251,6 @@ static int rockchip_i2c_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, i2c_dev);
 	dev_info(&pdev->dev, "rockchip i2c @ %p, irq %d\n",
 		 i2c_dev->base, i2c_dev->irq);
-	of_i2c_register_devices(&i2c_dev->adap);
 
 	return 0;
 }
