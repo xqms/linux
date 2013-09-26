@@ -70,7 +70,7 @@
 		sram: sram@10080000 {
 			compatible = "rockchip,rk3066-sram", "mmio-sram";
 			reg = <0x10080000 0x10000>;
-			mmio-sram-reserved = <0x0 0x50>;
+			available = <0x50 0x9950>;
 		};
 
 		pmu@20004000 {
@@ -93,58 +93,19 @@
 			cache-level = <2>;
 		};
 
-		/* RK30_PTIMER_PHYS */
-		local-timer@1013c600 {	
+		global-timer@1013c200 {
+			compatible = "arm,cortex-a9-global-timer";
+			reg = <0x1013c200 0x20>;
+			interrupts = <GIC_PPI 11 0xf01>;
+			clocks = <&clk_gates0 0>;
+		};
+
+		local-timer@1013c600 {
 			compatible = "arm,cortex-a9-twd-timer";
 			/* compatible = "arm,armv7-timer"; */
 			reg = <0x1013c600 0x20>;
 			interrupts = <GIC_PPI 13 0x304>;
 			clocks = <&clk_gates0 0>;
-		};
-
-		/* RK30_TIMER6 - IRQ 96 */
-		timer6@200380A0 {
-			compatible = "rockchip,rk3188-dw-apb-timer-osc";
-			reg = <0x200380A0 0x20>;
-			interrupts = <GIC_SPI 64 IRQ_TYPE_LEVEL_HIGH>;
-			clocks = <&clk_gates3 14>, <&clk_gates7 7>;
-			clock-names = "timer", "pclk";
-		};
- 
-		/* RK30_TIMER0 - IRQ 76 */
-		timer0@20038000 {
-			compatible = "rockchip,rk3188-dw-apb-timer-osc";
-			reg = <0x20038000 0x20>;
-			interrupts = <GIC_SPI 44 IRQ_TYPE_LEVEL_HIGH>;
-			clocks = <&clk_gates1 0>, <&clk_gates7 7>;
-			clock-names = "timer", "pclk";
-		};
-
-		/* RK30_TIMER1 - IRQ 77 */
-		timer1@20038020 {
-			compatible = "rockchip,rk3188-dw-apb-timer-osc";
-			reg = <0x20038020 0x20>;
-			interrupts = <GIC_SPI 45 IRQ_TYPE_LEVEL_HIGH>;
-			clocks = <&clk_gates1 1>, <&clk_gates7 7>;
-			clock-names = "timer", "pclk";
-		};
-
-		/* RK30_TIMER2 - IRQ 91 */
-		timer3@20038060 {
-			compatible = "rockchip,rk3188-dw-apb-timer-osc";
-			reg = <0x20038060 0x20>;
-			interrupts = <GIC_SPI 59 IRQ_TYPE_LEVEL_HIGH>;
-			clocks = <&clk_gates1 1>, <&clk_gates7 7>;
-			clock-names = "timer", "pclk";
-		};
-
-		/* RK30_TIMER4 - IRQ 92 */
-		timer4@20038080 {
-			compatible = "rockchip,rk3188-dw-apb-timer-osc";
-			reg = <0x20038080 0x20>;
-			interrupts = <GIC_SPI 60 IRQ_TYPE_LEVEL_HIGH>;
-			clocks = <&clk_gates1 1>, <&clk_gates7 7>;
-			clock-names = "timer", "pclk";
 		};
 
 		watchdog@2004c000 {
