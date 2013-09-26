@@ -102,7 +102,6 @@
 
 		local-timer@1013c600 {
 			compatible = "arm,cortex-a9-twd-timer";
-			/* compatible = "arm,armv7-timer"; */
 			reg = <0x1013c600 0x20>;
 			interrupts = <GIC_PPI 13 0x304>;
 			clocks = <&clk_gates0 0>;
