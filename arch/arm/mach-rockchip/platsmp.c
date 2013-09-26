@@ -93,46 +93,38 @@ static int __init rockchip_smp_prepare_sram(struct device_node *node)
 {
 	unsigned int trampoline_sz = &rockchip_secondary_trampoline_end -
 					    &rockchip_secondary_trampoline;
-	const __be32 *reserved_list = NULL;
-	int reserved_size;
-	int rstart = -1;
-	unsigned int rsize;
+	const __be32 *avail_list = NULL;
+	int avail_size;
+	int astart = -1;
+	unsigned int asize;
 	unsigned int i;
 
-	reserved_list = of_get_property(node, "mmio-sram-reserved",
-					&reserved_size);
-	if (!reserved_list) {
-		pr_err("%s: wrong number of arguments in mmio-sram-reserved\n",
+	avail_list = of_get_property(node, "available",
+					&avail_size);
+	if (!avail_list) {
+		pr_err("%s: available property for sram missing\n",
 		       __func__);
 		return -ENOENT;
 	}
 
-	reserved_size /= sizeof(*reserved_list);
-	if (!reserved_size || reserved_size % 2) {
-		pr_err("%s: wrong number of arguments in mmio-sram-reserved\n",
+	avail_size /= sizeof(*avail_list);
+	if (!avail_size || avail_size % 2) {
+		pr_err("%s: wrong number of arguments for available chunks\n",
 		       __func__);
 		return -EINVAL;
 	}
 
-	for (i = 0; i < reserved_size; i += 2) {
+	/* Check that the area for the trampoline is not generally available */
+	for (i = 0; i < avail_size; i += 2) {
 		/* get the next reserved block */
-		rstart = be32_to_cpu(*reserved_list++);
-		rsize = be32_to_cpu(*reserved_list++);
+		astart = be32_to_cpu(*avail_list++);
+		asize = be32_to_cpu(*avail_list++);
 
-		if (!rstart)
-			break;
-	}
-
-	if (rstart) {
-		pr_err("%s: start of sram is not reserved from mmio-sram\n",
-		       __func__);
-		return -EINVAL;
-	}
-
-	if (rsize < trampoline_sz) {
-		pr_err("%s: reserved block with size 0x%x is to small for trampoline size 0x%x\n",
-		       __func__, rsize, trampoline_sz);
-		return -EINVAL;
+		if (astart + asize < trampoline_sz) {
+			pr_err("%s: trampoline area in sram is not reserved\n",
+			       __func__);
+			return -EINVAL;
+		}
 	}
 
 	sram_base_addr = of_iomap(node, 0);

@@ -42,8 +42,8 @@ static int sram_probe(struct platform_device *pdev)
 	struct sram_dev *sram;
 	struct resource *res;
 	unsigned long size;
-	const __be32 *reserved_list = NULL;
-	int reserved_size = 0;
+	const __be32 *avail_list = NULL;
+	int avail_size = 0;
 	int ret;
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
@@ -68,19 +68,19 @@ static int sram_probe(struct platform_device *pdev)
 		return -ENOMEM;
 
 	if (pdev->dev.of_node) {
-		reserved_list = of_get_property(pdev->dev.of_node,
-						"mmio-sram-reserved",
-						&reserved_size);
-		if (reserved_list) {
-			reserved_size /= sizeof(*reserved_list);
-			if (!reserved_size || reserved_size % 2) {
-				dev_warn(&pdev->dev, "wrong number of arguments in mmio-sram-reserved\n");
-				reserved_list = NULL;
+		avail_list = of_get_property(pdev->dev.of_node,
+						"available",
+						&avail_size);
+		if (avail_list) {
+			avail_size /= sizeof(*avail_list);
+			if (!avail_size || avail_size % 2) {
+				dev_warn(&pdev->dev, "wrong number of arguments in available property\n");
+				avail_list = NULL;
 			}
 		}
 	}
 
-	if (!reserved_list) {
+	if (!avail_list) {
 		ret = gen_pool_add_virt(sram->pool, (unsigned long)virt_base,
 					res->start, size, -1);
 		if (ret < 0) {
@@ -89,65 +89,26 @@ static int sram_probe(struct platform_device *pdev)
 			return ret;
 		}
 	} else {
-		unsigned int cur_start = 0;
-		unsigned int cur_size;
-		unsigned int rstart;
-		unsigned int rsize;
+		unsigned int astart;
+		unsigned int asize;
 		int i;
 
-		for (i = 0; i < reserved_size; i += 2) {
-			/* get the next reserved block */
-			rstart = be32_to_cpu(*reserved_list++);
-			rsize = be32_to_cpu(*reserved_list++);
+		for (i = 0; i < avail_size; i += 2) {
+			/* get the next available block */
+			astart = be32_to_cpu(*avail_list++);
+			asize = be32_to_cpu(*avail_list++);
 
-			/* catch unsorted list entries */
-			if (rstart < cur_start) {
-				dev_err(&pdev->dev, "unsorted reserved list (0x%x before current 0x%x)\n",
-					rstart, cur_start);
-				if (sram->clk)
-					clk_disable_unprepare(sram->clk);
-				return -EINVAL;
-			}
+			dev_dbg(&pdev->dev, "found available block 0x%x-0x%x\n",
+				 astart, astart + asize);
 
-			dev_dbg(&pdev->dev, "found reserved block 0x%x-0x%x\n",
-				 rstart, rstart + rsize);
-
-			/* current start is in a reserved block */
-			if (rstart <= cur_start) {
-				cur_start = rstart + rsize;
-				continue;
-			}
-
-			/*
-			 * allocate the space between the current starting
-			 * address and the following reserved block
-			 */
-			cur_size = rstart - cur_start;
-
-			dev_dbg(&pdev->dev, "adding chunk 0x%x-0x%x\n",
-				 cur_start, cur_start + cur_size);
 			ret = gen_pool_add_virt(sram->pool,
-					(unsigned long)virt_base + cur_start,
-					res->start + cur_start, cur_size, -1);
+					(unsigned long)virt_base + astart,
+					res->start + astart, asize, -1);
 			if (ret < 0) {
 				if (sram->clk)
 					clk_disable_unprepare(sram->clk);
 				return ret;
 			}
-
-			/* next allocation after this reserved block */
-			cur_start = rstart + rsize;
-		}
-
-		/* allocate the space after the last reserved block */
-		if (cur_start < size) {
-			cur_size = size - cur_start;
-
-			dev_dbg(&pdev->dev, "adding chunk 0x%x-0x%x\n",
-				 cur_start, cur_start + cur_size);
-			ret = gen_pool_add_virt(sram->pool,
-					(unsigned long)virt_base + cur_start,
-					res->start + cur_start, cur_size, -1);
 		}
 	}
 

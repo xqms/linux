@@ -56,7 +56,7 @@
 		sram: sram@10080000 {
 			compatible = "rockchip,rk3066-sram", "mmio-sram";
 			reg = <0x10080000 0x10000>;
-			mmio-sram-reserved = <0x0 0x50>;
+			available = <0x50 0x9950>;
 		};
 
 		pmu@20004000 {

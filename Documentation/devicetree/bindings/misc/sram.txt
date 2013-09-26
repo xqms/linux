@@ -10,8 +10,8 @@ Required properties:
 
 Optional properties:
 
-- mmio-sram-reserved: ordered list of reserved chunks inside the sram that
-  should not become part of the genalloc pool.
+- available: optional list of available chunks inside the sram that the
+  OS can use. Without the available property the whole range is usable.
   Format is <base size>, <base size>, ...; with base being relative to the
   reg property base.
 
@@ -20,5 +20,5 @@ Example:
 sram: sram@5c000000 {
 	compatible = "mmio-sram";
 	reg = <0x5c000000 0x40000>; /* 256 KiB SRAM at address 0x5c000000 */
-	mmio-sram-reserved = <0x0 0x100>; /* reserve 0x5c000000-0x5c000100 */
+	available = <0x100 0x39900>;
 };
