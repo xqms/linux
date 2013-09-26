@@ -33,6 +33,12 @@
 			#clock-cells = <0>;
 		};
 
+		dummy_core_periph: dummy-core-periph {
+			compatible = "fixed-clock";
+			clock-frequency = <150000000>;
+			#clock-cells = <0>;
+		};
+
 		xin24m: xin24m {
 			compatible = "fixed-clock";
 			clock-frequency = <24000000>;
@@ -43,7 +49,7 @@
 			compatible = "rockchip,rk2928-gate-clk";
 			reg = <0x200000d0 0x4>;
 			clocks = 
-				 <&dummy>, <&dummy>,
+				 <&dummy_core_periph>, <&dummy>,
 				 <&dummy>, <&dummy>,
 				 <&dummy>, <&dummy>,
 				 <&dummy>, <&dummy>,
