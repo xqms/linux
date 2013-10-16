@@ -1,6 +1,4 @@
 /*
- * Copyright (c) 2013 Ulrich Prinz <ulrich.prinz@googlemail.com>
- * based on rk3066-clocks.dtsi
  * Copyright (c) 2013 MundoReader S.L.
  * Author: Heiko Stuebner <heiko@sntech.de>
  *
@@ -33,23 +31,28 @@
 			#clock-cells = <0>;
 		};
 
-		dummy_core_periph: dummy-core-periph {
-			compatible = "fixed-clock";
-			clock-frequency = <150000000>;
-			#clock-cells = <0>;
-		};
-
 		xin24m: xin24m {
 			compatible = "fixed-clock";
 			clock-frequency = <24000000>;
 			#clock-cells = <0>;
 		};
 
+		dummy48m: dummy48m {
+			compatible = "fixed-clock";
+			clock-frequency = <48000000>;
+			#clock-cells = <0>;
+		};
+
+		dummy150m: dummy150m {
+			compatible = "fixed-clock";
+			clock-frequency = <150000000>;
+			#clock-cells = <0>;
+		};
+
 		clk_gates0: gate-clk@200000d0 {
 			compatible = "rockchip,rk2928-gate-clk";
 			reg = <0x200000d0 0x4>;
-			clocks = 
-				 <&dummy_core_periph>, <&dummy>,
+			clocks = <&dummy150m>, <&dummy>,
 				 <&dummy>, <&dummy>,
 				 <&dummy>, <&dummy>,
 				 <&dummy>, <&dummy>,
@@ -74,8 +77,7 @@
 		clk_gates1: gate-clk@200000d4 {
 			compatible = "rockchip,rk2928-gate-clk";
 			reg = <0x200000d4 0x4>;
-			clocks = 
-				 <&xin24m>, <&xin24m>,
+			clocks = <&xin24m>, <&xin24m>,
 				 <&xin24m>, <&dummy>,
 				 <&dummy>, <&xin24m>,
 				 <&xin24m>, <&dummy>,
@@ -105,8 +107,8 @@
 				 <&dummy>, <&dummy>,
 				 <&clk_gates2 3>, <&dummy>,
 				 <&dummy>, <&dummy>,
-				 <&dummy>, <&xin24m>,
-				 <&dummy>, <&xin24m>,
+				 <&dummy>, <&dummy48m>,
+				 <&dummy>, <&dummy48m>,
 				 <&dummy>, <&dummy>;
 
 			clock-output-names =
@@ -175,15 +177,14 @@
 		clk_gates5: gate-clk@200000e4 {
 			compatible = "rockchip,rk2928-gate-clk";
 			reg = <0x200000e4 0x4>;
-			clocks = 
-				 <&clk_gates0 3>, <&clk_gates2 1>,
+			clocks = <&clk_gates0 3>, <&clk_gates2 1>,
 				 <&clk_gates0 5>, <&clk_gates0 5>,
 				 <&clk_gates0 5>, <&clk_gates0 5>,
 				 <&clk_gates0 4>, <&clk_gates0 5>,
 				 <&clk_gates2 1>, <&clk_gates2 2>,
 				 <&clk_gates2 2>, <&clk_gates2 2>,
 				 <&clk_gates2 2>, <&clk_gates4 5>;
-				
+
 			clock-output-names =
 				"gate_aclk_dmac1", "gate_aclk_dmac2",
 				"gate_pclk_efuse", "gate_pclk_tzpc",
@@ -199,8 +200,7 @@
 		clk_gates6: gate-clk@200000e8 {
 			compatible = "rockchip,rk2928-gate-clk";
 			reg = <0x200000e8 0x4>;
-			clocks = 
-				 <&clk_gates3 0>, <&clk_gates0 4>,
+			clocks = <&clk_gates3 0>, <&clk_gates0 4>,
 				 <&clk_gates0 4>, <&clk_gates1 4>,
 				 <&clk_gates0 4>, <&clk_gates3 0>,
 				 <&dummy>, <&dummy>,
@@ -223,10 +223,9 @@
 		clk_gates7: gate-clk@200000ec {
 			compatible = "rockchip,rk2928-gate-clk";
 			reg = <0x200000ec 0x4>;
-			clocks = 
-				 <&clk_gates2 2>, <&clk_gates0 4>,
-				 <&clk_gates0 4>, <&dummy>, /*<&clk_gbla>,*/
-				 <&dummy>, /*<&clk_bla>,*/ <&clk_gates2 2>,
+			clocks = <&clk_gates2 2>, <&clk_gates0 4>,
+				 <&clk_gates0 4>, <&dummy>,
+				 <&dummy>, <&clk_gates2 2>,
 				 <&clk_gates2 2>, <&clk_gates0 5>,
 				 <&dummy>, <&clk_gates0 5>,
 				 <&clk_gates0 5>, <&clk_gates2 3>,
@@ -249,14 +248,13 @@
 		clk_gates8: gate-clk@200000f0 {
 			compatible = "rockchip,rk2928-gate-clk";
 			reg = <0x200000f0 0x4>;
-			clocks = 
-				 <&clk_gates0 5>, <&clk_gates0 5>,
+			clocks = <&clk_gates0 5>, <&clk_gates0 5>,
 				 <&clk_gates2 3>, <&clk_gates2 3>,
 				 <&clk_gates0 5>, <&clk_gates0 5>,
 				 <&clk_gates2 3>, <&clk_gates2 3>,
 				 <&clk_gates2 3>, <&clk_gates0 5>,
 				 <&clk_gates0 5>, <&clk_gates0 5>,
-				 <&clk_gates2 3>, <&dummy> /*<&clk_gatbla>*/;
+				 <&clk_gates2 3>, <&dummy>;
 
 			clock-output-names =
 				"gate_pclk_uart0", "gate_pclk_uart1",
@@ -273,11 +271,10 @@
 		clk_gates9: gate-clk@200000f4 {
 			compatible = "rockchip,rk2928-gate-clk";
 			reg = <0x200000f4 0x4>;
-			clocks = 
-				 <&dummy>, <&dummy>, /*<&clk_gates0 5xx>,*/
+			clocks = <&dummy>, <&dummy>,
 				 <&dummy>, <&dummy>,
-				 <&dummy>, <&dummy>, /*<&clk_gates1 4xx>,*/
-				 <&dummy>, /*<&clk_gates0 5xx>,*/ <&dummy>;
+				 <&dummy>, <&dummy>,
+				 <&dummy>, <&dummy>;
 
 			clock-output-names =
 				"gate_clk_core_dbg", "gate_pclk_dbg",

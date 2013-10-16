@@ -19,10 +19,6 @@
 / {
 	model = "bq Curie 2";
 
-	chosen {
-		bootargs = "earlyprintk console=ttyS2,115200";
-	};
-
 	memory {
 		reg = <0x60000000 0x40000000>;
 	};
@@ -73,6 +69,7 @@
 		dwmmc@10218000 { /* wifi */
 			num-slots = <1>;
 			status = "okay";
+			non-removable;
 
 			pinctrl-names = "default";
 			pinctrl-0 = <&sd1_clk &sd1_cmd &sd1_bus4>;
@@ -84,9 +81,6 @@
 			};
 		};
 
-		/* needs rework, as the rk gpios do not support
-		 * both-edge triggered interrupts
-		 */
 		gpio-keys {
 			compatible = "gpio-keys";
 			#address-cells = <1>;
