@@ -31,12 +31,10 @@ static void __iomem *scu_base_addr;
 static void __iomem *sram_base_addr;
 static int ncores;
 
-/*
- * temporary PMU handling
- */
-
 #define PMU_PWRDN_CON		0x08
 #define PMU_PWRDN_ST		0x0c
+
+#define PMU_PWRDN_SCU		4
 
 static void __iomem *pmu_base_addr;
 
@@ -84,7 +82,7 @@ static int __cpuinit rockchip_boot_secondary(unsigned int cpu,
 /**
  * rockchip_smp_prepare_sram - populate necessary sram block
  * Starting cores execute the code residing at the start of the on-chip sram
- * after powe-on. Therefore make sure, this sram region is reserved and
+ * after power-on. Therefore make sure, this sram region is reserved and
  * big enough. After this check, copy the trampoline code that directs the
  * core to the real startup code in ram into the sram-region.
  * @node: mmio-sram device node
@@ -93,38 +91,46 @@ static int __init rockchip_smp_prepare_sram(struct device_node *node)
 {
 	unsigned int trampoline_sz = &rockchip_secondary_trampoline_end -
 					    &rockchip_secondary_trampoline;
-	const __be32 *avail_list = NULL;
-	int avail_size;
-	int astart = -1;
-	unsigned int asize;
+	const __be32 *reserved_list = NULL;
+	int reserved_size;
+	int rstart = -1;
+	unsigned int rsize;
 	unsigned int i;
 
-	avail_list = of_get_property(node, "available",
-					&avail_size);
-	if (!avail_list) {
-		pr_err("%s: available property for sram missing\n",
+	reserved_list = of_get_property(node, "mmio-sram-reserved",
+					&reserved_size);
+	if (!reserved_list) {
+		pr_err("%s: mmio-sram-reserved property not found\n",
 		       __func__);
 		return -ENOENT;
 	}
 
-	avail_size /= sizeof(*avail_list);
-	if (!avail_size || avail_size % 2) {
-		pr_err("%s: wrong number of arguments for available chunks\n",
+	reserved_size /= sizeof(*reserved_list);
+	if (!reserved_size || reserved_size % 2) {
+		pr_err("%s: wrong number of arguments in mmio-sram-reserved\n",
 		       __func__);
 		return -EINVAL;
 	}
 
-	/* Check that the area for the trampoline is not generally available */
-	for (i = 0; i < avail_size; i += 2) {
+	for (i = 0; i < reserved_size; i += 2) {
 		/* get the next reserved block */
-		astart = be32_to_cpu(*avail_list++);
-		asize = be32_to_cpu(*avail_list++);
+		rstart = be32_to_cpu(*reserved_list++);
+		rsize = be32_to_cpu(*reserved_list++);
 
-		if (astart + asize < trampoline_sz) {
-			pr_err("%s: trampoline area in sram is not reserved\n",
-			       __func__);
-			return -EINVAL;
-		}
+		if (!rstart)
+			break;
+	}
+
+	if (rstart) {
+		pr_err("%s: start of sram is not reserved from mmio-sram\n",
+		       __func__);
+		return -EINVAL;
+	}
+
+	if (rsize < trampoline_sz) {
+		pr_err("%s: reserved block with size 0x%x is to small for trampoline size 0x%x\n",
+		       __func__, rsize, trampoline_sz);
+		return -EINVAL;
 	}
 
 	sram_base_addr = of_iomap(node, 0);
@@ -170,11 +176,18 @@ static void __init rockchip_smp_prepare_cpus(unsigned int max_cpus)
 
 	node = of_find_compatible_node(NULL, NULL, "rockchip,rk3066-pmu");
 	if (!node) {
-		pr_err("%s: could not find sram dt node\n", __func__);
+		pr_err("%s: could not find pmu dt node\n", __func__);
 		return;
 	}
 
 	pmu_base_addr = of_iomap(node, 0);
+	if (!pmu_base_addr) {
+		pr_err("%s: could not map pmu registers\n", __func__);
+		return;
+	}
+
+	/* enable the SCU power domain */
+	pmu_set_power_domain(PMU_PWRDN_SCU, true);
 
 	/*
 	 * While the number of cpus is gathered from dt, also get the number
