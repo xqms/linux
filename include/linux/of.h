@@ -253,8 +253,6 @@ extern struct property *of_find_property(const struct device_node *np,
 extern int of_property_read_u32_index(const struct device_node *np,
 				       const char *propname,
 				       u32 index, u32 *out_value);
-extern int of_property_count_u32_elems(const struct device_node *np,
-				       const char *propname);
 extern int of_property_read_u8_array(const struct device_node *np,
 			const char *propname, u8 *out_values, size_t sz);
 extern int of_property_read_u16_array(const struct device_node *np,
@@ -430,12 +428,6 @@ static inline struct device_node *of_find_compatible_node(
 
 static inline int of_property_read_u32_index(const struct device_node *np,
 			const char *propname, u32 index, u32 *out_value)
-{
-	return -ENOSYS;
-}
-
-static inline int of_property_count_u32_elems(const struct device_node *np,
-			const char *propname)
 {
 	return -ENOSYS;
 }
