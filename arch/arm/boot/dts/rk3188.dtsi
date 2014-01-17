@@ -52,12 +52,6 @@
 	};
 
 	soc {
-		sram: sram@10080000 {
-			compatible = "rockchip,rk3066-sram", "mmio-sram";
-			reg = <0x10080000 0x8000>;
-			mmio-sram-reserved = <0x0 0x50>;
-		};
-
 		global-timer@1013c200 {
 			interrupts = <GIC_PPI 11 0xf04>;
 		};
