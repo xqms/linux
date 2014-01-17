@@ -34,13 +34,6 @@ static void __init timer_get_base_and_rate(struct device_node *np,
 	if (!*base)
 		panic("Unable to map regs for %s", np->name);
 
-	*quirks = 0;
-
-	if (of_device_is_compatible(np, "rockchip,rk3188-dw-apb-timer-osc"))
-		*quirks |= (APBTMR_QUIRK_64BIT_COUNTER | APBTMR_QUIRK_NO_EOI 
-				| APBTMR_QUIRK_INVERSE_INTMASK | APBTMR_QUIRK_INVERSE_PERIODIC
-			);
-
 	/*
 	 * Not all implementations use a periphal clock, so don't panic
 	 * if it's not present
@@ -71,16 +64,15 @@ static void __init add_clockevent(struct device_node *event_timer)
 	void __iomem *iobase;
 	struct dw_apb_clock_event_device *ced;
 	u32 irq, rate;
-	int quirks;
 
 	irq = irq_of_parse_and_map(event_timer, 0);
 	if (irq == 0)
 		panic("No IRQ for clock event timer");
 
-	timer_get_base_and_rate(event_timer, &iobase, &rate, &quirks);
+	timer_get_base_and_rate(event_timer, &iobase, &rate);
 
 	ced = dw_apb_clockevent_init(0, event_timer->name, 300, iobase, irq,
-				     rate, quirks);
+				     rate);
 	if (!ced)
 		panic("Unable to initialise clockevent device");
 
@@ -95,12 +87,10 @@ static void __init add_clocksource(struct device_node *source_timer)
 	void __iomem *iobase;
 	struct dw_apb_clocksource *cs;
 	u32 rate;
-	int quirks;
 
-	timer_get_base_and_rate(source_timer, &iobase, &rate, &quirks);
+	timer_get_base_and_rate(source_timer, &iobase, &rate);
 
-	cs = dw_apb_clocksource_init(300, source_timer->name, iobase, rate,
-				     quirks);
+	cs = dw_apb_clocksource_init(300, source_timer->name, iobase, rate);
 	if (!cs)
 		panic("Unable to initialise clocksource device");
 
@@ -114,9 +104,6 @@ static void __init add_clocksource(struct device_node *source_timer)
 	 */
 	sched_io_base = iobase + 0x04;
 	sched_rate = rate;
-
-	if (quirks & APBTMR_QUIRK_64BIT_COUNTER)
-		sched_io_base += 0x04;
 }
 
 static u64 read_sched_clock(void)
@@ -132,12 +119,11 @@ static const struct of_device_id sptimer_ids[] __initconst = {
 static void __init init_sched_clock(void)
 {
 	struct device_node *sched_timer;
-	int quirks;
 
 	sched_timer = of_find_matching_node(NULL, sptimer_ids);
 	if (sched_timer) {
 		timer_get_base_and_rate(sched_timer, &sched_io_base,
-					&sched_rate, &quirks);
+					&sched_rate);
 		of_node_put(sched_timer);
 	}
 
