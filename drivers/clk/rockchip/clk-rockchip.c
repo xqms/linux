@@ -18,7 +18,7 @@
 #include <linux/of.h>
 #include <linux/of_address.h>
 
-#include "clk-rockchip-pll.h"
+#include "clk-pll.h"
 
 static DEFINE_SPINLOCK(clk_lock);
 
@@ -69,16 +69,15 @@ static void __init rockchip_pll_setup(struct device_node *node,
 	pr_debug("%s: adding %s as child of %s\n",
 		__func__, clk_name, clk_parent);
 
-	clk = rockchip_clk_register_rk3x_pll(clk_name, clk_parent, reg_base,
+/*	clk = rockchip_clk_register_rk3x_pll(clk_name, clk_parent, reg_base,
 					     reg_mode, data->mode_shift,
 					     &clk_lock);
 	if (clk) {
 		of_clk_add_provider(node, of_clk_src_simple_get, clk);
 
-		/* optionally set a target frequency for the pll */
 		if (!of_property_read_u32(node, "clock-frequency", &rate))
 			clk_set_rate(clk, rate);
-	}
+	} */
 }
 
 static void __init rk3066a_apll_init(struct device_node *node, void *data)
