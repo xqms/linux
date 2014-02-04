@@ -37,8 +37,8 @@ struct sram_dev {
 };
 
 struct sram_reserve {
-	unsigned long start;
-	unsigned long size;
+	u32 start;
+	u32 size;
 };
 
 static int sram_probe(struct platform_device *pdev)
@@ -46,8 +46,8 @@ static int sram_probe(struct platform_device *pdev)
 	void __iomem *virt_base;
 	struct sram_dev *sram;
 	struct resource *res;
+	struct device_node *np = pdev->dev.of_node;
 	unsigned long size, cur_start, cur_size;
-	const __be32 *reserved_list = NULL;
 	int reserved_size = 0;
 	struct sram_reserve *rblocks;
 	unsigned int nblocks;
@@ -75,17 +75,17 @@ static int sram_probe(struct platform_device *pdev)
 	if (!sram->pool)
 		return -ENOMEM;
 
-	if (pdev->dev.of_node) {
-		reserved_list = of_get_property(pdev->dev.of_node,
-						"mmio-sram-reserved",
-						&reserved_size);
-		if (reserved_list) {
-			reserved_size /= sizeof(*reserved_list);
-			if (!reserved_size || reserved_size % 2) {
-				dev_warn(&pdev->dev, "wrong number of arguments in mmio-sram-reserved\n");
-				reserved_list = NULL;
-				reserved_size = 0;
-			}
+	if (np) {
+		reserved_size = of_property_count_u32_elems(np,
+							"mmio-sram-reserved");
+
+		/* mmio-sram-reserved is optional, so its absence is no error */
+		if (reserved_size < 0)
+			reserved_size = 0;
+
+		if (reserved_size % 2) {
+			dev_warn(&pdev->dev, "wrong number of arguments in mmio-sram-reserved\n");
+			reserved_size = 0;
 		}
 	}
 
@@ -102,12 +102,15 @@ static int sram_probe(struct platform_device *pdev)
 
 	cur_start = 0;
 	for (i = 0; i < nblocks - 1; i++) {
-		rblocks[i].start = be32_to_cpu(*reserved_list++);
-		rblocks[i].size = be32_to_cpu(*reserved_list++);
+		/* checked the property exists above so can skip return vals */
+		of_property_read_u32_index(np, "mmio-sram-reserved",
+					   2 * i, &rblocks[i].start);
+		of_property_read_u32_index(np, "mmio-sram-reserved",
+					   2 * i + 1, &rblocks[i].size);
 
 		if (rblocks[i].start < cur_start) {
 			dev_err(&pdev->dev,
-				"unsorted reserved list (0x%lx before current 0x%lx)\n",
+				"unsorted reserved list (0x%x before current 0x%lx)\n",
 				rblocks[i].start, cur_start);
 			ret = -EINVAL;
 			goto err_chunks;
@@ -115,7 +118,7 @@ static int sram_probe(struct platform_device *pdev)
 
 		if (rblocks[i].start >= size) {
 			dev_err(&pdev->dev,
-				"reserved block at 0x%lx outside the sram size 0x%lx\n",
+				"reserved block at 0x%x outside the sram size 0x%lx\n",
 				rblocks[i].start, size);
 			ret = -EINVAL;
 			goto err_chunks;
@@ -123,14 +126,14 @@ static int sram_probe(struct platform_device *pdev)
 
 		if (rblocks[i].start + rblocks[i].size > size) {
 			dev_warn(&pdev->dev,
-				 "reserved block at 0x%lx to large, trimming\n",
+				 "reserved block at 0x%x to large, trimming\n",
 				 rblocks[i].start);
 			rblocks[i].size = size - rblocks[i].start;
 		}
 
 		cur_start = rblocks[i].start + rblocks[i].size;
 
-		dev_dbg(&pdev->dev, "found reserved block 0x%lx-0x%lx\n",
+		dev_dbg(&pdev->dev, "found reserved block 0x%x-0x%x\n",
 			rblocks[i].start,
 			rblocks[i].start + rblocks[i].size);
 	}
