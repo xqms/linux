@@ -22,10 +22,6 @@
 #include <linux/i2c.h>
 #include <linux/bcd.h>
 #include <linux/rtc.h>
-#include <linux/delay.h>
-#include <linux/slab.h>
-#include <linux/gpio.h>
-#include <linux/of_gpio.h>
 
 #define HYM8563_CTL1		0x00
 #define HYM8563_CTL1_TEST	BIT(7)
@@ -91,7 +87,9 @@ struct hym8563 {
 	struct i2c_client	*client;
 	struct rtc_device	*rtc;
 	bool			valid;
+#ifdef CONFIG_COMMON_CLK
 	struct clk_hw		clkout_hw;
+#endif
 };
 
 /*
@@ -294,6 +292,7 @@ static const struct rtc_class_ops hym8563_rtc_ops = {
  * Handling of the clkout
  */
 
+#ifdef CONFIG_COMMON_CLK
 #define clkout_hw_to_hym8563(_hw) container_of(_hw, struct hym8563, clkout_hw)
 
 static int clkout_rates[] = {
@@ -390,7 +389,7 @@ static int hym8563_clkout_is_prepared(struct clk_hw *hw)
 	return !(ret & HYM8563_CLKOUT_DISABLE);
 }
 
-const struct clk_ops hym8563_clkout_ops = {
+static const struct clk_ops hym8563_clkout_ops = {
 	.prepare = hym8563_clkout_prepare,
 	.unprepare = hym8563_clkout_unprepare,
 	.is_prepared = hym8563_clkout_is_prepared,
@@ -427,6 +426,7 @@ static struct clk *hym8563_clkout_register_clk(struct hym8563 *hym8563)
 
 	return clk;
 }
+#endif
 
 /*
  * The alarm interrupt is implemented as a level-low interrupt in the
@@ -528,9 +528,9 @@ static int hym8563_probe(struct i2c_client *client,
 			 const struct i2c_device_id *id)
 {
 	struct hym8563 *hym8563;
-	int ret, gpio_int;
+	int ret;
 
-	hym8563 = devm_kzalloc(&client->dev, sizeof(hym8563), GFP_KERNEL);
+	hym8563 = devm_kzalloc(&client->dev, sizeof(*hym8563), GFP_KERNEL);
 	if (!hym8563)
 		return -ENOMEM;
 
@@ -538,20 +538,6 @@ static int hym8563_probe(struct i2c_client *client,
 	i2c_set_clientdata(client, hym8563);
 
 	device_set_wakeup_capable(&client->dev, true);
-
-	gpio_int = of_get_gpio(client->dev.of_node, 0);
-	if (!gpio_is_valid(gpio_int)) {
-		dev_err(&client->dev, "failed to get interrupt gpio\n");
-		return -EINVAL;
-	}
-
-	ret = devm_gpio_request_one(&client->dev, gpio_int,
-				      GPIOF_DIR_IN, "hym8563_int");
-	if (ret) {
-		dev_err(&client->dev, "request of gpio %d failed, %d\n",
-			gpio_int, ret);
-		return ret;
-	}
 
 	ret = hym8563_init_device(client);
 	if (ret) {
@@ -583,8 +569,9 @@ static int hym8563_probe(struct i2c_client *client,
 	if (IS_ERR(hym8563->rtc))
 		return PTR_ERR(hym8563->rtc);
 
-	if (IS_ENABLED(CONFIG_COMMON_CLK))
-		hym8563_clkout_register_clk(hym8563);
+#ifdef CONFIG_COMMON_CLK
+	hym8563_clkout_register_clk(hym8563);
+#endif
 
 	return 0;
 }
@@ -595,20 +582,18 @@ static const struct i2c_device_id hym8563_id[] = {
 };
 MODULE_DEVICE_TABLE(i2c, hym8563_id);
 
-#ifdef CONFIG_OF
 static struct of_device_id hym8563_dt_idtable[] = {
 	{ .compatible = "haoyu,hym8563" },
 	{},
 };
 MODULE_DEVICE_TABLE(of, hym8563_dt_idtable);
-#endif
 
 static struct i2c_driver hym8563_driver = {
 	.driver		= {
 		.name	= "rtc-hym8563",
 		.owner	= THIS_MODULE,
 		.pm	= &hym8563_pm_ops,
-		.of_match_table	= of_match_ptr(hym8563_dt_idtable),
+		.of_match_table	= hym8563_dt_idtable,
 	},
 	.probe		= hym8563_probe,
 	.id_table	= hym8563_id,
