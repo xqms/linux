@@ -36,7 +36,6 @@
 #include <linux/timer.h>
 #include <linux/uaccess.h>
 #include <linux/watchdog.h>
-#include <linux/of.h>
 
 #define WDOG_CONTROL_REG_OFFSET		    0x00
 #define WDOG_CONTROL_REG_WDT_EN_MASK	    0x01

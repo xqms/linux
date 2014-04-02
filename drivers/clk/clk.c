@@ -148,51 +148,6 @@ static int clk_summary_show(struct seq_file *s, void *data)
 	return 0;
 }
 
-static void cclk_summary_show_one(struct clk *c, int level)
-{
-	if (!c)
-		return;
-
-	printk("%*s%-*s %-11d %-12d %-10lu\n",
-		   level * 3 + 1, "",
-		   30 - level * 3, c->name,
-		   c->enable_count, c->prepare_count, c->rate);
-}
-
-static void cclk_summary_show_subtree(struct clk *c,
-				     int level)
-{
-	struct clk *child;
-
-	if (!c)
-		return;
-
-	cclk_summary_show_one(c, level);
-
-	hlist_for_each_entry(child, &c->children, child_node)
-		cclk_summary_show_subtree(child, level + 1);
-}
-
-int cclk_summary_show(void *data)
-{
-	struct clk *c;
-
-	printk("   clock                        enable_cnt  prepare_cnt  rate\n");
-	printk("---------------------------------------------------------------------\n");
-
-	clk_prepare_lock();
-
-	hlist_for_each_entry(c, &clk_root_list, child_node)
-		cclk_summary_show_subtree(c, 0);
-
-	hlist_for_each_entry(c, &clk_orphan_list, child_node)
-		cclk_summary_show_subtree(c, 0);
-
-	clk_prepare_unlock();
-
-	return 0;
-}
-
 
 static int clk_summary_open(struct inode *inode, struct file *file)
 {

@@ -121,7 +121,7 @@ static inline void apbt_set_mapping(void)
 
 	clocksource_apbt = dw_apb_clocksource_init(APBT_CLOCKSOURCE_RATING,
 		"apbt0", apbt_virt_address + phy_cs_timer_id *
-		APBTMRS_REG_SIZE, apbt_freq, 0);
+		APBTMRS_REG_SIZE, apbt_freq);
 	return;
 
 panic_noapbt:
@@ -159,7 +159,7 @@ static int __init apbt_clockevent_register(void)
 	adev->timer = dw_apb_clockevent_init(smp_processor_id(), "apbt0",
 		intel_mid_timer_options == INTEL_MID_TIMER_LAPIC_APBT ?
 		APBT_CLOCKEVENT_RATING - 100 : APBT_CLOCKEVENT_RATING,
-		adev_virt_addr(adev), 0, apbt_freq, 0);
+		adev_virt_addr(adev), 0, apbt_freq);
 	/* Firmware does EOI handling for us. */
 	adev->timer->eoi = NULL;
 
