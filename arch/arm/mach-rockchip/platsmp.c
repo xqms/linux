@@ -91,42 +91,18 @@ static int __init rockchip_smp_prepare_sram(struct device_node *node)
 {
 	unsigned int trampoline_sz = &rockchip_secondary_trampoline_end -
 					    &rockchip_secondary_trampoline;
-	const __be32 *reserved_list = NULL;
-	int reserved_size;
-	int rstart = -1;
+	struct resource res;
 	unsigned int rsize;
-	unsigned int i;
+	int ret;
 
-	reserved_list = of_get_property(node, "mmio-sram-reserved",
-					&reserved_size);
-	if (!reserved_list) {
-		pr_err("%s: mmio-sram-reserved property not found\n",
-		       __func__);
-		return -ENOENT;
+	ret = of_address_to_resource(node, 0, &res);
+	if (ret < 0) {
+		pr_err("%s: could not get address for node %s\n",
+		       __func__, node->full_name);
+		return ret;
 	}
 
-	reserved_size /= sizeof(*reserved_list);
-	if (!reserved_size || reserved_size % 2) {
-		pr_err("%s: wrong number of arguments in mmio-sram-reserved\n",
-		       __func__);
-		return -EINVAL;
-	}
-
-	for (i = 0; i < reserved_size; i += 2) {
-		/* get the next reserved block */
-		rstart = be32_to_cpu(*reserved_list++);
-		rsize = be32_to_cpu(*reserved_list++);
-
-		if (!rstart)
-			break;
-	}
-
-	if (rstart) {
-		pr_err("%s: start of sram is not reserved from mmio-sram\n",
-		       __func__);
-		return -EINVAL;
-	}
-
+	rsize = resource_size(&res);
 	if (rsize < trampoline_sz) {
 		pr_err("%s: reserved block with size 0x%x is to small for trampoline size 0x%x\n",
 		       __func__, rsize, trampoline_sz);
@@ -165,7 +141,7 @@ static void __init rockchip_smp_prepare_cpus(unsigned int max_cpus)
 		return;
 	}
 
-	node = of_find_compatible_node(NULL, NULL, "rockchip,rk3066-sram");
+	node = of_find_compatible_node(NULL, NULL, "rockchip,rk3066-smp-sram");
 	if (!node) {
 		pr_err("%s: could not find sram dt node\n", __func__);
 		return;
@@ -176,7 +152,7 @@ static void __init rockchip_smp_prepare_cpus(unsigned int max_cpus)
 
 	node = of_find_compatible_node(NULL, NULL, "rockchip,rk3066-pmu");
 	if (!node) {
-		pr_err("%s: could not find pmu dt node\n", __func__);
+		pr_err("%s: could not find sram dt node\n", __func__);
 		return;
 	}
 
