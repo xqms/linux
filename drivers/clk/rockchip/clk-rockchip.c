@@ -18,8 +18,6 @@
 #include <linux/of.h>
 #include <linux/of_address.h>
 
-#include "clk-pll.h"
-
 static DEFINE_SPINLOCK(clk_lock);
 
 struct rockchip_pll_data {
