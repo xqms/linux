@@ -73,12 +73,12 @@ static int rockchip_pll_wait_lock(struct rockchip_clk_pll *pll)
 	int delay = 24000000;
 
 	while (delay > 0) {
-		if (readl_relaxed(pll->reg_lock) & BIT(pll->lock_shift))
+		if (readl(pll->reg_lock) & BIT(pll->lock_shift))
 			return 0;
 		delay--;
 	}
 
-	pr_err("%s: timeout waiting for pll lock\n", __func__);
+	pr_err("%s: timeout waiting for pll to lock\n", __func__);
 	return -ETIMEDOUT;
 }
 
@@ -151,6 +151,7 @@ static int rockchip_rk3066_pll_set_rate(struct clk_hw *hw, unsigned long drate,
 {
 	struct rockchip_clk_pll *pll = to_clk_pll(hw);
 	const struct rockchip_pll_rate_table *rate;
+	unsigned long old_rate = rockchip_rk3066_pll_recalc_rate(hw, prate);
 	int ret;
 
 	/* Get required rate settings from table */
@@ -161,19 +162,23 @@ static int rockchip_rk3066_pll_set_rate(struct clk_hw *hw, unsigned long drate,
 		return -EINVAL;
 	}
 
+	pr_debug("%s: rate settings for %lu (nr, no, nf): (%d, %d, %d)\n",
+		 __func__, rate->rate, rate->nr, rate->no, rate->nf);
+
 	/* put pll in slow mode and enter reset afterwards */
 	writel_relaxed(HIWORD_UPDATE(RK3066_PLL_MODE_SLOW, pll->mode_shift,
 					RK3066_PLL_MODE_MASK), pll->reg_mode);
 	writel(HIWORD_UPDATE(RK3066_PLLCON3_RESET, RK3066_PLLCON3_RESET, 0),
-	       pll->reg_base + RK3066_PLLCON(3));
+					pll->reg_base + RK3066_PLLCON(3));
 
 	/* update pll values */
-	writel(HIWORD_UPDATE(rate->nr, RK3066_PLLCON0_NR_MASK,
-				       RK3066_PLLCON0_NR_SHIFT) |
-	       HIWORD_UPDATE(rate->no, RK3066_PLLCON0_OD_MASK,
-				       RK3066_PLLCON0_OD_SHIFT),
+	writel(HIWORD_UPDATE(rate->nr - 1, RK3066_PLLCON0_NR_MASK,
+					   RK3066_PLLCON0_NR_SHIFT) |
+	       HIWORD_UPDATE(rate->no - 1, RK3066_PLLCON0_OD_MASK,
+					   RK3066_PLLCON0_OD_SHIFT),
 	       pll->reg_base + RK3066_PLLCON(0));
-	writel_relaxed(HIWORD_UPDATE(rate->nf, RK3066_PLLCON1_NF_MASK,
+
+	writel_relaxed(HIWORD_UPDATE(rate->nf - 1, RK3066_PLLCON1_NF_MASK,
 					RK3066_PLLCON1_NF_SHIFT),
 		       pll->reg_base + RK3066_PLLCON(1));
 	writel_relaxed(HIWORD_UPDATE((rate->nf >> 1),
@@ -181,19 +186,25 @@ static int rockchip_rk3066_pll_set_rate(struct clk_hw *hw, unsigned long drate,
 				        RK3066_PLLCON2_BWADJ_SHIFT),
 		       pll->reg_base + RK3066_PLLCON(2));
 	dsb();
-	
+
 	/* leave reset and wait the reset_delay */
-	writel(HIWORD_UPDATE(0, RK3066_PLLCON3_RESET, 0), pll->reg_base + RK3066_PLLCON(3));
+	writel(HIWORD_UPDATE(0, RK3066_PLLCON3_RESET, 0),
+	       pll->reg_base + RK3066_PLLCON(3));
 	udelay(RK3066_PLL_RESET_DELAY(rate->nr));
 
 	/* wait for the pll to lock */
 	ret = rockchip_pll_wait_lock(pll);
+	if (ret) {
+		pr_warn("%s: trying to restore old rate %lu\n",
+			__func__, old_rate);
+		rockchip_rk3066_pll_set_rate(hw, old_rate, prate);
+	}
 
 	/* go back to normal mode */
 	writel(HIWORD_UPDATE(RK3066_PLL_MODE_NORM, pll->mode_shift,
 			     RK3066_PLL_MODE_MASK), pll->reg_mode);
 
-	return 0;
+	return ret;
 }
 
 static const struct clk_ops rockchip_rk3066_pll_clk_ro_ops = {
@@ -212,7 +223,7 @@ static void __init _rockchip_clk_register_pll(struct rockchip_pll_clock *pll_clk
 	struct rockchip_clk_pll *pll;
 	struct clk *clk;
 	struct clk_init_data init;
-	int ret, len;
+	int len;
 
 	pll = kzalloc(sizeof(*pll), GFP_KERNEL);
 	if (!pll) {
