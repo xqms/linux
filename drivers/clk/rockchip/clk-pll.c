@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 MundoReader S.L.
+ * Copyright (c) 2014 MundoReader S.L.
  * Author: Heiko Stuebner <heiko@sntech.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -19,8 +19,6 @@
 #include <linux/delay.h>
 #include <linux/clk.h>
 #include <linux/clk-private.h>
-
-#include "clk-pll.h"
 #include "clk.h"
 
 struct rockchip_clk_pll {
@@ -57,6 +55,10 @@ static long rockchip_pll_round_rate(struct clk_hw *hw,
 	struct rockchip_clk_pll *pll = to_clk_pll(hw);
 	const struct rockchip_pll_rate_table *rate_table = pll->rate_table;
 	int i;
+
+	/* bypass the pll */
+	if (drate == *prate)
+		return drate;
 
 	/* Assumming rate_table is in descending order */
 	for (i = 0; i < pll->rate_count; i++) {
@@ -111,17 +113,17 @@ static int rockchip_pll_wait_lock(struct rockchip_clk_pll *pll)
 #define RK3066_PLLCON3_BYPASS		(1 << 0)
 
 static unsigned long rockchip_rk3066_pll_recalc_rate(struct clk_hw *hw,
-				unsigned long parent_rate)
+				unsigned long prate)
 {
 	struct rockchip_clk_pll *pll = to_clk_pll(hw);
-	u64 nf, nr, no, rate64 = parent_rate;
+	u64 nf, nr, no, rate64 = prate;
 	u32 pllcon;
 
 	pllcon = readl_relaxed(pll->reg_base + RK3066_PLLCON(3));
 	if (pllcon & RK3066_PLLCON3_BYPASS) {
 		pr_debug("%s: pll %s is bypassed\n", __func__,
 			__clk_get_name(hw->clk));
-		return parent_rate;
+		return prate;
 	}
 
 	pllcon = readl_relaxed(pll->reg_mode) >> pll->mode_shift;
@@ -129,7 +131,7 @@ static unsigned long rockchip_rk3066_pll_recalc_rate(struct clk_hw *hw,
 	if (pllcon != RK3066_PLL_MODE_NORM) {
 		pr_debug("%s: pll %s not in normal mode: %d\n", __func__,
 			__clk_get_name(hw->clk), pllcon);
-		return parent_rate;
+		return prate;
 	}
 
 	pllcon = readl_relaxed(pll->reg_base + RK3066_PLLCON(1));
@@ -154,6 +156,26 @@ static int rockchip_rk3066_pll_set_rate(struct clk_hw *hw, unsigned long drate,
 	unsigned long old_rate = rockchip_rk3066_pll_recalc_rate(hw, prate);
 	int ret;
 
+	pr_debug("%s: changing %s from %lu to %lu with a parent rate of %lu\n",
+		 __func__, __clk_get_name(hw->clk), old_rate, drate, prate);
+
+	if (drate == prate) {
+		writel(HIWORD_UPDATE(RK3066_PLL_MODE_SLOW, RK3066_PLL_MODE_MASK,
+				     pll->mode_shift),
+		       pll->reg_mode);
+
+		/* powerdown the pll, as it is unused */
+		writel(HIWORD_UPDATE(RK3066_PLLCON3_PWRDOWN, RK3066_PLLCON3_PWRDOWN, 0),
+		       pll->reg_base + RK3066_PLLCON(3));
+
+		return 0;
+	}
+
+	/* need to powerup the pll first */
+	if (old_rate == prate)
+		writel(HIWORD_UPDATE(0, RK3066_PLLCON3_PWRDOWN, 0),
+		       pll->reg_base + RK3066_PLLCON(3));
+
 	/* Get required rate settings from table */
 	rate = rockchip_get_pll_settings(pll, drate);
 	if (!rate) {
@@ -166,8 +188,8 @@ static int rockchip_rk3066_pll_set_rate(struct clk_hw *hw, unsigned long drate,
 		 __func__, rate->rate, rate->nr, rate->no, rate->nf);
 
 	/* put pll in slow mode and enter reset afterwards */
-	writel_relaxed(HIWORD_UPDATE(RK3066_PLL_MODE_SLOW, pll->mode_shift,
-					RK3066_PLL_MODE_MASK), pll->reg_mode);
+	writel_relaxed(HIWORD_UPDATE(RK3066_PLL_MODE_SLOW, RK3066_PLL_MODE_MASK,
+					pll->mode_shift), pll->reg_mode);
 	writel(HIWORD_UPDATE(RK3066_PLLCON3_RESET, RK3066_PLLCON3_RESET, 0),
 					pll->reg_base + RK3066_PLLCON(3));
 
@@ -185,7 +207,6 @@ static int rockchip_rk3066_pll_set_rate(struct clk_hw *hw, unsigned long drate,
 					RK3066_PLLCON2_BWADJ_MASK,
 				        RK3066_PLLCON2_BWADJ_SHIFT),
 		       pll->reg_base + RK3066_PLLCON(2));
-	dsb();
 
 	/* leave reset and wait the reset_delay */
 	writel(HIWORD_UPDATE(0, RK3066_PLLCON3_RESET, 0),
@@ -201,8 +222,8 @@ static int rockchip_rk3066_pll_set_rate(struct clk_hw *hw, unsigned long drate,
 	}
 
 	/* go back to normal mode */
-	writel(HIWORD_UPDATE(RK3066_PLL_MODE_NORM, pll->mode_shift,
-			     RK3066_PLL_MODE_MASK), pll->reg_mode);
+	writel(HIWORD_UPDATE(RK3066_PLL_MODE_NORM, RK3066_PLL_MODE_MASK,
+			     pll->mode_shift), pll->reg_mode);
 
 	return ret;
 }
