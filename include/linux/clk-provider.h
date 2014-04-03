@@ -304,6 +304,8 @@ struct clk_div_table {
  *   of this register, and mask of divider bits are in higher 16-bit of this
  *   register.  While setting the divider bits, higher 16-bit should also be
  *   updated to indicate changing divider bits.
+ * CLK_DIVIDER_READ_ONLY - The divider settings are preconfigured and should
+ *	not be changed by the clock framework.
  */
 struct clk_divider {
 	struct clk_hw	hw;
@@ -319,8 +321,10 @@ struct clk_divider {
 #define CLK_DIVIDER_POWER_OF_TWO	BIT(1)
 #define CLK_DIVIDER_ALLOW_ZERO		BIT(2)
 #define CLK_DIVIDER_HIWORD_MASK		BIT(3)
+#define CLK_DIVIDER_READ_ONLY		BIT(4)
 
 extern const struct clk_ops clk_divider_ops;
+extern const struct clk_ops clk_divider_ro_ops;
 struct clk *clk_register_divider(struct device *dev, const char *name,
 		const char *parent_name, unsigned long flags,
 		void __iomem *reg, u8 shift, u8 width,
