@@ -55,8 +55,8 @@ struct rockchip_cpuclk {
  * fields in this structure can be populated.
  */
 struct rockchip_cpuclk_soc_data {
-	int (*parser)(struct device_node *, void **);
-	const struct clk_ops *ops;
+	int 			(*parser)(struct device_node *, void **);
+	const struct clk_ops	*ops;
 	int (*clk_cb)(struct notifier_block *nb, unsigned long evt, void *data);
 };
 
@@ -168,12 +168,14 @@ struct rk2928_cpuclk_data {
 	u32			clksel1;
 };
 
+struct rk2928_reg_data {
+	u8		div_core_shift;
+	u32		div_core_mask;
+};
+
 #define RK2928_DIV_CORE_SHIFT	0
 #define RK2928_DIV_CORE_MASK	0x1f
 
-/**
- * CPU clock speed or RK2928 and RK3066 is parent clock speed / div_core
- */
 static unsigned long rockchip_rk2928_cpuclk_recalc_rate(struct clk_hw *hw,
 				unsigned long parent_rate)
 {
@@ -184,6 +186,11 @@ static unsigned long rockchip_rk2928_cpuclk_recalc_rate(struct clk_hw *hw,
 	clksel0 &= RK2928_DIV_CORE_MASK;
 	return parent_rate / (clksel0 + 1);
 }
+
+static const struct rk2928_reg_data rk2928_data = {
+	.div_core_shift = RK2928_DIV_CORE_SHIFT,
+	.div_core_mask = RK2928_DIV_CORE_MASK,
+};
 
 static const struct clk_ops rk2928_cpuclk_ops = {
 	.recalc_rate = rockchip_rk2928_cpuclk_recalc_rate,
@@ -204,9 +211,6 @@ static const struct clk_ops rk2928_cpuclk_ops = {
 		HIWORD_UPDATE(div_aclk_core, RK3188_DIV_ACLK_CORE_MASK,\
 				 RK3188_DIV_ACLK_CORE_SHIFT)
 
-/**
- * CPU clock speed or RK2928 and RK3066 is parent clock speed / div_core
- */
 static unsigned long rockchip_rk3188_cpuclk_recalc_rate(struct clk_hw *hw,
 				unsigned long parent_rate)
 {
@@ -217,6 +221,11 @@ static unsigned long rockchip_rk3188_cpuclk_recalc_rate(struct clk_hw *hw,
 	clksel0 &= RK3188_DIV_CORE_MASK;
 	return parent_rate / (clksel0 + 1);
 }
+
+static const struct rk2928_reg_data rk3188_data = {
+	.div_core_shift = RK3188_DIV_CORE_SHIFT,
+	.div_core_mask = RK3188_DIV_CORE_MASK,
+};
 
 static const struct clk_ops rk3188_cpuclk_ops = {
 	.recalc_rate = rockchip_rk3188_cpuclk_recalc_rate,
@@ -234,14 +243,11 @@ static int rk3188_cpuclk_notifier_cb(struct notifier_block *nb,
 	struct clk_notifier_data *ndata = data;
 	struct rockchip_cpuclk *cpuclk = to_rockchip_cpuclk_nb(nb);
 	struct rk2928_cpuclk_data *cpuclk_data = cpuclk->data;
-	unsigned long alt_prate, alt_div, clksel0, clksel1/*, mux_reg*/;
-	bool need_safe_freq;
-	int ret;
+	unsigned long alt_prate, alt_div;
 
 	switch (event) {
 	case PRE_RATE_CHANGE:
 		alt_prate = clk_get_rate(cpuclk->alt_parent);
-printk("%s: alt_rate is %lu\n", __func__, alt_prate);
 
 		/* pre-rate change. find out the divider values */
 		while (cpuclk_data->prate != ndata->new_rate) {
@@ -256,24 +262,33 @@ printk("%s: alt_rate is %lu\n", __func__, alt_prate);
 		 * the cpuclk speed is more than the old_prate until the dividers are
 		 * set.
 		 */
-		need_safe_freq = ndata->old_rate < alt_prate &&
-					ndata->new_rate < alt_prate;
-	if (need_safe_freq) {
-		alt_div = _calc_div(alt_prate, ndata->old_rate);
-		pr_info("%s: need core divider %lu to generate safe frequence\n", __func__, alt_div);
-		writel_relaxed(HIWORD_UPDATE(alt_div, RK3188_DIV_CORE_MASK, RK3188_DIV_CORE_SHIFT), cpuclk->reg_base + RK2928_CLKSEL_CON(0));
-	}
+		if (ndata->old_rate < alt_prate &&
+					ndata->new_rate < alt_prate) {
+			alt_div = _calc_div(alt_prate, ndata->old_rate);
+			writel_relaxed(HIWORD_UPDATE(alt_div,
+						     RK3188_DIV_CORE_MASK,
+						     RK3188_DIV_CORE_SHIFT),
+				      cpuclk->reg_base + RK2928_CLKSEL_CON(0));
+		}
 
-
+		/* mux to alternate parent */
 		writel(HIWORD_UPDATE(1, 1, RK3188_MUX_CORE_SHIFT),
 		       cpuclk->reg_base + RK2928_CLKSEL_CON(0));
 
-		writel(cpuclk_data->clksel0, cpuclk->reg_base + RK2928_CLKSEL_CON(0));
-		writel(cpuclk_data->clksel1, cpuclk->reg_base + RK2928_CLKSEL_CON(1));
+		/* set new divider values for depending clocks */
+		writel(cpuclk_data->clksel0,
+		       cpuclk->reg_base + RK2928_CLKSEL_CON(0));
+		writel_relaxed(cpuclk_data->clksel1,
+		       cpuclk->reg_base + RK2928_CLKSEL_CON(1));
 		break;
 	case POST_RATE_CHANGE:
 		/* post-rate change event, re-mux back to primary parent */
 		writel(HIWORD_UPDATE(0, 1, RK3188_MUX_CORE_SHIFT),
+		       cpuclk->reg_base + RK2928_CLKSEL_CON(0));
+
+		/* remove any core dividers */
+		writel(HIWORD_UPDATE(0, RK3188_DIV_CORE_MASK,
+				     RK3188_DIV_CORE_SHIFT),
 		       cpuclk->reg_base + RK2928_CLKSEL_CON(0));
 		break;
 	}
@@ -288,11 +303,8 @@ printk("%s: alt_rate is %lu\n", __func__, alt_prate);
 static int __init rk3188_cpuclk_parser(struct device_node *np, void **data)
 {
 	struct rk2928_cpuclk_data *tdata;
-	u32 cfg[10];
-	const struct property *prop;
-	const __be32 *val;
-	u32 cells;
 	int proplen, ret, num_rows, i, col;
+	u32 cfg[10], cells;
 
 	ret = of_property_read_u32(np, "#rockchip,armclk-cells", &cells);
 	if (ret)
