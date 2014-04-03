@@ -46,7 +46,7 @@
 			regulator-name = "sdmmc-supply";
 			regulator-min-microvolt = <3000000>;
 			regulator-max-microvolt = <3000000>;
-			gpio = <&gpio3 1 0 /*GPIO_ACTIVE_LOW*/>;
+			gpio = <&gpio3 1 GPIO_ACTIVE_LOW>;
 			startup-delay-us = <100000>;
 		};
 
