@@ -75,6 +75,12 @@
 			#clock-cells = <0>;
 		};
 
+		dummy150m: dummy150m {
+			compatible = "fixed-clock";
+			clock-frequency = <150000000>;
+			#clock-cells = <0>;
+		};
+
 	};
 
 	soc {
