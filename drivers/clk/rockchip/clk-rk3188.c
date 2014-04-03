@@ -1,3 +1,17 @@
+/*
+ * Copyright (c) 2013 MundoReader S.L.
+ * Author: Heiko Stuebner <heiko@sntech.de>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
 
 #include <linux/clk-provider.h>
 #include <linux/of.h>
@@ -139,11 +153,20 @@ static struct clk_div_table div_core_peri_t[] = {
 	{ /* sentinel */},
 };
 
+static struct clk_div_table div_aclk_core_t[] = {
+	{ .val = 0, .div = 1 },
+	{ .val = 1, .div = 2 },
+	{ .val = 2, .div = 3 },
+	{ .val = 3, .div = 4 },
+	{ .val = 4, .div = 8 },
+	{ /* sentinel */},
+};
+
 #define DFLAGS CLK_DIVIDER_HIWORD_MASK
 static struct rockchip_div_clock rk3188_div_clks[] __initdata = {
 	/* these two are set by the cpuclk and should not be changed */
-	DIV(0, "div_core_peri", "armclk", RK2928_CLKSEL_CON(0), 6, 2, 0, DFLAGS /*| CLK_DIVIDER_READ_ONLY*/, div_core_peri_t),
-	DIV(0, "div_aclk_core", "armclk", RK2928_CLKSEL_CON(1), 3, 3, 0, DFLAGS /*| CLK_DIVIDER_READ_ONLY*/, NULL), 
+	DIV(0, "div_core_peri", "armclk", RK2928_CLKSEL_CON(0), 6, 2, 0, DFLAGS | CLK_DIVIDER_READ_ONLY, div_core_peri_t),
+	DIV(0, "div_aclk_core", "armclk", RK2928_CLKSEL_CON(1), 3, 3, 0, DFLAGS | CLK_DIVIDER_READ_ONLY, div_aclk_core_t), 
 
 
 	DIV(0, "div_aclk_cpu", "mux_aclk_cpu", RK2928_CLKSEL_CON(0), 0, 5, 0, DFLAGS, NULL), 
