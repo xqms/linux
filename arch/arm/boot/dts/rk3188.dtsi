@@ -81,6 +81,12 @@
 			#clock-cells = <0>;
 		};
 
+		dummy480m: dummy480m {
+			compatible = "fixed-clock";
+			clock-frequency = <480000000>;
+			#clock-cells = <0>;
+		};
+
 	};
 
 	soc {
@@ -245,6 +251,22 @@
 
 			pcfg_pull_none: pcfg_pull_none {
 				bias-disable;
+			};
+
+			emac {
+				emac_xfer: emac-xfer {
+					rockchip,pins = <RK_GPIO3 16 RK_FUNC_2 &pcfg_pull_none>, //tx_en
+							<RK_GPIO3 17 RK_FUNC_2 &pcfg_pull_none>, //txd1
+							<RK_GPIO3 18 RK_FUNC_2 &pcfg_pull_none>, //txd0
+							<RK_GPIO3 19 RK_FUNC_2 &pcfg_pull_none>, //rxd0
+							<RK_GPIO3 20 RK_FUNC_2 &pcfg_pull_none>, //rxd1
+							<RK_GPIO3 21 RK_FUNC_2 &pcfg_pull_none>, //mac_clk
+							<RK_GPIO3 22 RK_FUNC_2 &pcfg_pull_none>, //rx_err
+							<RK_GPIO3 23 RK_FUNC_2 &pcfg_pull_none>, //crs_dvalid
+							<RK_GPIO3 24 RK_FUNC_2 &pcfg_pull_none>, //md
+							<RK_GPIO3 25 RK_FUNC_2 &pcfg_pull_none>; //mdclk
+//							<RK_GPIO3 26 RK_FUNC_2 &pcfg_pull_none>, //rmii_int
+				};
 			};
 
 			uart0 {

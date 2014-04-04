@@ -117,6 +117,20 @@
 			};
 		};
 
+		emac@10204000 {
+			status = "okay";
+
+			pinctrl-names = "default";
+			pinctrl-0 = <&emac_xfer>;
+
+			mac-address = [ 00 11 22 33 44 55 ];
+			phy = <&phy0>;
+
+			phy0: ethernet-phy@0 {
+				reg = <0>;
+			};
+		};
+
 		dwmmc@10214000 { /* sdmmc */
 			num-slots = <1>;
 			status = "okay";
