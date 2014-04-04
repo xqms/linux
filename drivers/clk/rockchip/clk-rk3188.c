@@ -146,6 +146,7 @@ PNAME(mux_sclk_uart0_p)		= { "gate_div_uart0", "gate_frac_uart0", "xin24m" };
 PNAME(mux_sclk_uart1_p)		= { "gate_div_uart1", "gate_frac_uart1", "xin24m" };
 PNAME(mux_sclk_uart2_p)		= { "gate_div_uart2", "gate_frac_uart2", "xin24m" };
 PNAME(mux_sclk_uart3_p)		= { "gate_div_uart3", "gate_frac_uart3", "xin24m" };
+PNAME(mux_hsicphy_p)		= { "gate_otgphy0", "gate_otgphy1", "gpll", "cpll" };
 
 #define MFLAGS CLK_MUX_HIWORD_MASK
 static struct rockchip_mux_clock rk3188_mux_clks[] __initdata = {
@@ -164,6 +165,7 @@ static struct rockchip_mux_clock rk3188_mux_clks[] __initdata = {
 	MUX(SCLK_UART2, "mux_sclk_uart2", mux_sclk_uart2_p, RK2928_CLKSEL_CON(15), 8, 2, 0, MFLAGS),
 	MUX(SCLK_UART3, "mux_sclk_uart3", mux_sclk_uart3_p, RK2928_CLKSEL_CON(16), 8, 2, 0, MFLAGS),
 
+	MUX(0, "mux_hsicphy", mux_hsicphy_p, RK2928_CLKSEL_CON(30), 0, 2, 0, MFLAGS),
 };
 
 /* 2 ^ (val + 1) */
@@ -212,6 +214,8 @@ static struct rockchip_div_clock rk3188_div_clks[] __initdata = {
 	DIV(0, "div_mmc1", "gate_hclk_peri", RK2928_CLKSEL_CON(12), 0, 6, 0, DFLAGS, NULL),
 	DIV(0, "div_mmc2", "gate_hclk_peri", RK2928_CLKSEL_CON(12), 8, 6, 0, DFLAGS, NULL),
 
+	/* FIXME: what is the divider, should it be 12m? */
+	DIV(0, "div_hsicphy", "mux_hsicphy", RK2928_CLKGATE_CON(11), 8, 6, 0, DFLAGS, NULL),
 };
 
 #define GFLAGS CLK_GATE_HIWORD_MASK | CLK_GATE_SET_TO_DISABLE
@@ -240,8 +244,8 @@ static struct rockchip_gate_clock rk3188_gate_clks[] __initdata = {
 	GATE(0, "gate_timer3", "xin24m", RK2928_CLKGATE_CON(1), 2, 0, GFLAGS),
 	GATE(0, "gate_jtag", "dummy", RK2928_CLKGATE_CON(1), 3, 0, GFLAGS),
 	GATE(0, "gate_aclk_lcdc1_src", "div_aclk_lcdc1_src", RK2928_CLKGATE_CON(1), 4, 0, GFLAGS),
-	GATE(0, "gate_otgphy0", "xin24m", RK2928_CLKGATE_CON(1), 5, 0, GFLAGS),
-	GATE(0, "gate_otgphy1", "xin24m", RK2928_CLKGATE_CON(1), 6, 0, GFLAGS),
+	GATE(0, "gate_otgphy0", "dummy480m", RK2928_CLKGATE_CON(1), 5, 0, GFLAGS),
+	GATE(0, "gate_otgphy1", "dummy480m", RK2928_CLKGATE_CON(1), 6, 0, GFLAGS),
 	GATE(0, "gate_gpll_ddr", "gpll", RK2928_CLKGATE_CON(1), 7, 0, GFLAGS),
 	GATE(0, "gate_div_uart0", "div_uart0", RK2928_CLKGATE_CON(1), 8, 0, GFLAGS),
 	GATE(0, "gate_frac_uart0", "frac_uart0", RK2928_CLKGATE_CON(1), 9, 0, GFLAGS),
