@@ -131,12 +131,11 @@ static struct rockchip_pll_clock rk3188_pll_clks[] __initdata = {
 	[gpll] = PLL(pll_rk3066, 0, "gpll", "xin24m", 0, RK2928_PLL_CON(12), RK2928_MODE_CON, 12, 8, rk3188_gpll_rates),
 };
 
+PNAME(mux_pll_src_gpll_cpll_p)	= { "gpll", "cpll" };
+
 PNAME(mux_armclk_p)		= { "apll", "gate_cpu_gpll" };
 PNAME(mux_aclk_cpu_p)		= { "apll", "gpll" };
 PNAME(mux_aclk_peri_p)		= { "cpll", "gpll" };
-
-PNAME(mux_uart_pll_p)		= { "gpll", "cpll" };
-PNAME(mux_i2s_pll_p)		= { "gpll", "cpll" };
 
 PNAME(mux_sclk_i2s_p)		= { "gate_div_i2s", "gate_frac_i2s", "dummy" /*, something called clk12m */ };
 PNAME(mux_sclk_spdif_p)		= { "gate_div_spdif", "gate_frac_spdif", "dummy" /*, something called clk12m */ };
@@ -146,16 +145,19 @@ PNAME(mux_sclk_uart0_p)		= { "gate_div_uart0", "gate_frac_uart0", "xin24m" };
 PNAME(mux_sclk_uart1_p)		= { "gate_div_uart1", "gate_frac_uart1", "xin24m" };
 PNAME(mux_sclk_uart2_p)		= { "gate_div_uart2", "gate_frac_uart2", "xin24m" };
 PNAME(mux_sclk_uart3_p)		= { "gate_div_uart3", "gate_frac_uart3", "xin24m" };
+
+PNAME(mux_sclk_mac_p)		= { "gate_div_mac", "dummy" };
+
 PNAME(mux_hsicphy_p)		= { "gate_otgphy0", "gate_otgphy1", "gpll", "cpll" };
 
 #define MFLAGS CLK_MUX_HIWORD_MASK
 static struct rockchip_mux_clock rk3188_mux_clks[] __initdata = {
 	MUX(0, "mux_aclk_cpu", mux_aclk_cpu_p, RK2928_CLKSEL_CON(0), 5, 1, CLK_SET_RATE_NO_REPARENT, MFLAGS),
-	MUX(0, "mux_aclk_peri", mux_aclk_peri_p, RK2928_CLKSEL_CON(10), 15, 1, CLK_SET_RATE_NO_REPARENT, MFLAGS),
+	MUX(0, "mux_aclk_peri", mux_aclk_peri_p, RK2928_CLKSEL_CON(10), 15, 1, 0, MFLAGS),
 
 
-	MUX(0, "mux_i2s_pll", mux_i2s_pll_p, RK2928_CLKSEL_CON(2), 15, 1, 0, MFLAGS),
-	MUX(0, "mux_uart_pll", mux_uart_pll_p, RK2928_CLKSEL_CON(12), 15, 1, 0, MFLAGS),
+	MUX(0, "mux_i2s_pll", mux_pll_src_gpll_cpll_p, RK2928_CLKSEL_CON(2), 15, 1, 0, MFLAGS),
+	MUX(0, "mux_uart_pll", mux_pll_src_gpll_cpll_p, RK2928_CLKSEL_CON(12), 15, 1, 0, MFLAGS),
 
 	MUX(0, "mux_sclk_i2s", mux_sclk_i2s_p, RK2928_CLKSEL_CON(3), 8, 2, 0, MFLAGS),
 	MUX(0, "mux_sclk_spdif", mux_sclk_spdif_p, RK2928_CLKSEL_CON(5), 8, 2, 0, MFLAGS),
@@ -166,6 +168,9 @@ static struct rockchip_mux_clock rk3188_mux_clks[] __initdata = {
 	MUX(SCLK_UART3, "mux_sclk_uart3", mux_sclk_uart3_p, RK2928_CLKSEL_CON(16), 8, 2, 0, MFLAGS),
 
 	MUX(0, "mux_hsicphy", mux_hsicphy_p, RK2928_CLKSEL_CON(30), 0, 2, 0, MFLAGS),
+
+	MUX(0, "mux_mac_pll", mux_pll_src_gpll_cpll_p, RK2928_CLKSEL_CON(21), 0, 2, 0, MFLAGS),
+	MUX(0, "mux_sclk_mac", mux_sclk_mac_p, RK2928_CLKSEL_CON(21), 4, 1, 0, MFLAGS),
 };
 
 /* 2 ^ (val + 1) */
@@ -213,6 +218,8 @@ static struct rockchip_div_clock rk3188_div_clks[] __initdata = {
 	DIV(0, "div_mmc0", "gate_hclk_peri", RK2928_CLKSEL_CON(11), 0, 6, 0, DFLAGS, NULL),
 	DIV(0, "div_mmc1", "gate_hclk_peri", RK2928_CLKSEL_CON(12), 0, 6, 0, DFLAGS, NULL),
 	DIV(0, "div_mmc2", "gate_hclk_peri", RK2928_CLKSEL_CON(12), 8, 6, 0, DFLAGS, NULL),
+
+	DIV(0, "div_mac", "mux_mac_pll", RK2928_CLKSEL_CON(21), 8, 5, 0, DFLAGS, NULL),
 
 	/* FIXME: what is the divider, should it be 12m? */
 	DIV(0, "div_hsicphy", "mux_hsicphy", RK2928_CLKGATE_CON(11), 8, 6, 0, DFLAGS, NULL),
@@ -408,6 +415,7 @@ struct rockchip_clk_init_table rk3188_clk_init_tbl[] = {
 	{ "div_pclk_peri", NULL,  75000000, 0 },
 
 	{ "div_mmc0", NULL,  75000000, 0 },
+	{ "div_mac", NULL,  50000000, 0 },
 
 	{ "cpll", NULL, 594000000, 0 },
 	{ "armclk", NULL, 1200000000, 0 },
