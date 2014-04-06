@@ -130,8 +130,8 @@
 
 					vdd_arm_reg: DCDC_REG3 {
 						regulator-name = "VDD_ARM";
-						regulator-min-microvolt = <1000000>;
-						regulator-max-microvolt = <1000000>;
+						regulator-min-microvolt = <875000>;
+						regulator-max-microvolt = <1300000>;
 						regulator-always-on;
 					};
 
@@ -149,12 +149,12 @@
 						regulator-always-on;
 					};
 
-					vdd_hdmi_reg: LDO_REG6 {
+/*					vdd_hdmi_reg: LDO_REG6 {
 						regulator-name = "VDD_HDMI";
 						regulator-min-microvolt = <2500000>;
 						regulator-max-microvolt = <2500000>;
 						regulator-always-on;
-					};
+					};*/
 
 					vcc_18_reg: LDO_REG7 {
 						regulator-name = "VCC_18";
@@ -197,6 +197,13 @@
 						regulator-max-microvolt = <2800000>;
 						regulator-always-on;
 					};
+
+					vcc_rtc_reg: LDO_REG13 {
+						regulator-name = "VCC_RTC";
+						regulator-min-microvolt = <1800000>;
+						regulator-max-microvolt = <1800000>;
+						regulator-always-on;
+					};
 				};
 			};
 		};
@@ -204,7 +211,7 @@
 		pinctrl@20008000 {
 			hym8563 {
 				hym8563_int: hym8563-int {
-					rockchip,pins = <RK_GPIO0 0 RK_FUNC_1 &pcfg_pull_up>;
+					rockchip,pins = <RK_GPIO0 0 RK_FUNC_GPIO &pcfg_pull_up>;
 				};
 			};
 		};
