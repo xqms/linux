@@ -31,6 +31,19 @@
 			compatible = "arm,cortex-a9";
 			next-level-cache = <&L2>;
 			reg = <0x0>;
+			operating-points = <
+				/* kHz    uV */
+				1608000 1300000
+				1416000 1250000
+				1200000 1150000
+				1008000 1075000
+				816000 975000
+				504000 925000
+				312000 875000
+			>;
+			clock-latency = <61036>; /* two CLK32 periods */
+			clocks = <&cru CLK_ARMCLK>;
+			arm-supply = <&vdd_arm_reg>;
 		};
 		cpu@1 {
 			device_type = "cpu";
@@ -65,7 +78,7 @@
 		 */
 		dummy: dummy {
 			compatible = "fixed-clock";
-			clock-frequency = <0>;
+			clock-frequency = <1>;
 			#clock-cells = <0>;
 		};
 
@@ -265,7 +278,6 @@
 							<RK_GPIO3 23 RK_FUNC_2 &pcfg_pull_none>, //crs_dvalid
 							<RK_GPIO3 24 RK_FUNC_2 &pcfg_pull_none>, //md
 							<RK_GPIO3 25 RK_FUNC_2 &pcfg_pull_none>; //mdclk
-//							<RK_GPIO3 26 RK_FUNC_2 &pcfg_pull_none>, //rmii_int
 				};
 			};
 
