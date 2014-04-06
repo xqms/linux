@@ -153,7 +153,7 @@ PNAME(mux_hsicphy_p)		= { "gate_otgphy0", "gate_otgphy1", "gpll", "cpll" };
 #define MFLAGS CLK_MUX_HIWORD_MASK
 static struct rockchip_mux_clock rk3188_mux_clks[] __initdata = {
 	MUX(0, "mux_aclk_cpu", mux_aclk_cpu_p, RK2928_CLKSEL_CON(0), 5, 1, CLK_SET_RATE_NO_REPARENT, MFLAGS),
-	MUX(0, "mux_aclk_peri", mux_aclk_peri_p, RK2928_CLKSEL_CON(10), 15, 1, 0, MFLAGS),
+	MUX(0, "mux_aclk_peri", mux_aclk_peri_p, RK2928_CLKSEL_CON(10), 15, 1, CLK_SET_RATE_NO_REPARENT, MFLAGS),
 
 
 	MUX(0, "mux_i2s_pll", mux_pll_src_gpll_cpll_p, RK2928_CLKSEL_CON(2), 15, 1, 0, MFLAGS),
@@ -415,10 +415,12 @@ struct rockchip_clk_init_table rk3188_clk_init_tbl[] = {
 	{ "div_pclk_peri", NULL,  75000000, 0 },
 
 	{ "div_mmc0", NULL,  75000000, 0 },
+
+	{ "cpll", NULL, 600000000, 0 },
+
+//	{ "mux_mac_pll", "cpll", 0, 0 },
 	{ "div_mac", NULL,  50000000, 0 },
 
-	{ "cpll", NULL, 594000000, 0 },
-	{ "armclk", NULL, 1200000000, 0 },
 };
 
 static void __init rk3188_clock_apply_init_table(void)

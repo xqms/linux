@@ -149,6 +149,7 @@ void __init rockchip_clk_init_from_table(struct rockchip_clk_init_table *tbl,
 
 		if (tbl->parent_name) {
 			struct clk *parent = __clk_lookup(tbl->parent_name);
+			pr_info("%s: setting parent if %s to %s\n", __func__, tbl->name, tbl->parent_name);
 			if (clk_set_parent(clk, parent)) {
 				pr_err("%s: Failed to set parent %s of %s\n",
 				       __func__, tbl->parent_name, tbl->name);
