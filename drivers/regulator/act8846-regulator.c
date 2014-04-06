@@ -58,11 +58,12 @@
 #define	ACT8846_LDO11_CTRL	0x91
 #define	ACT8846_LDO12_VSET	0xA0
 #define	ACT8846_LDO12_CTRL	0xA1
+#define ACT8846_LDO13_CTRL	0xB1
 
 /*
  * Field Definitions.
  */
-#define	ACT8846_ENA		0x80	/* ON - [7] */
+#define	ACT8846_ENA		BIT(7)	/* ON - [7] */
 #define	ACT8846_VSEL_MASK	0x3F	/* VSET - [5:0] */
 
 /*
@@ -86,19 +87,17 @@ static const struct regulator_linear_range act8846_voltage_ranges[] = {
 	REGULATOR_LINEAR_RANGE(2400000, 48, 63, 100000),
 };
 
-static int dummy_set_voltage_sel_regmap(struct regulator_dev *rdev, unsigned sel)
-{
-	printk("=== act8846-reg: set voltage %u\n", sel);
-	return 0;
-}
-
 static struct regulator_ops act8846_ops = {
 	.list_voltage		= regulator_list_voltage_linear_range,
 	.map_voltage		= regulator_map_voltage_linear_range,
 	.get_voltage_sel	= regulator_get_voltage_sel_regmap,
-	.set_voltage_sel	= dummy_set_voltage_sel_regmap,
-	/* for the brave : */
-	/* .set_voltage_sel	= regulator_set_voltage_sel_regmap, */
+	.set_voltage_sel	= regulator_set_voltage_sel_regmap,
+	.enable			= regulator_enable_regmap,
+	.disable		= regulator_disable_regmap,
+	.is_enabled		= regulator_is_enabled_regmap,
+};
+
+static struct regulator_ops act8846_fixed_ops = {
 	.enable			= regulator_enable_regmap,
 	.disable		= regulator_disable_regmap,
 	.is_enabled		= regulator_is_enabled_regmap,
@@ -118,8 +117,7 @@ static const struct regulator_desc act8846_reg[] = {
 		.enable_reg = ACT8846_DCDC1_CTRL,
 		.enable_mask = ACT8846_ENA,
 		.owner = THIS_MODULE,
-	},
-	{
+	}, {
 		.name = "DCDC_REG2",
 		.id = ACT8846_ID_DCDC2,
 		.ops = &act8846_ops,
@@ -132,8 +130,7 @@ static const struct regulator_desc act8846_reg[] = {
 		.enable_reg = ACT8846_DCDC2_CTRL,
 		.enable_mask = ACT8846_ENA,
 		.owner = THIS_MODULE,
-	},
-	{
+	}, {
 		.name = "DCDC_REG3",
 		.id = ACT8846_ID_DCDC3,
 		.ops = &act8846_ops,
@@ -146,8 +143,7 @@ static const struct regulator_desc act8846_reg[] = {
 		.enable_reg = ACT8846_DCDC3_CTRL,
 		.enable_mask = ACT8846_ENA,
 		.owner = THIS_MODULE,
-	},
-	{
+	}, {
 		.name = "DCDC_REG4",
 		.id = ACT8846_ID_DCDC4,
 		.ops = &act8846_ops,
@@ -155,14 +151,12 @@ static const struct regulator_desc act8846_reg[] = {
 		.n_voltages = ACT8846_VOLTAGE_NUM,
 		.linear_ranges = act8846_voltage_ranges,
 		.n_linear_ranges = ARRAY_SIZE(act8846_voltage_ranges),
-		.vsel_reg = ACT8846_DCDC3_VSET1,
+		.vsel_reg = ACT8846_DCDC4_VSET1,
 		.vsel_mask = ACT8846_VSEL_MASK,
-		.enable_reg = ACT8846_DCDC3_CTRL,
+		.enable_reg = ACT8846_DCDC4_CTRL,
 		.enable_mask = ACT8846_ENA,
 		.owner = THIS_MODULE,
-	},
-
-	{
+	}, {
 		.name = "LDO_REG5",
 		.id = ACT8846_ID_LDO5,
 		.ops = &act8846_ops,
@@ -175,9 +169,7 @@ static const struct regulator_desc act8846_reg[] = {
 		.enable_reg = ACT8846_LDO5_CTRL,
 		.enable_mask = ACT8846_ENA,
 		.owner = THIS_MODULE,
-	},
-
-	{
+	}, {
 		.name = "LDO_REG6",
 		.id = ACT8846_ID_LDO6,
 		.ops = &act8846_ops,
@@ -190,9 +182,7 @@ static const struct regulator_desc act8846_reg[] = {
 		.enable_reg = ACT8846_LDO6_CTRL,
 		.enable_mask = ACT8846_ENA,
 		.owner = THIS_MODULE,
-	},
-
-	{
+	}, {
 		.name = "LDO_REG7",
 		.id = ACT8846_ID_LDO7,
 		.ops = &act8846_ops,
@@ -205,9 +195,7 @@ static const struct regulator_desc act8846_reg[] = {
 		.enable_reg = ACT8846_LDO7_CTRL,
 		.enable_mask = ACT8846_ENA,
 		.owner = THIS_MODULE,
-	},
-
-	{
+	}, {
 		.name = "LDO_REG8",
 		.id = ACT8846_ID_LDO8,
 		.ops = &act8846_ops,
@@ -220,9 +208,7 @@ static const struct regulator_desc act8846_reg[] = {
 		.enable_reg = ACT8846_LDO8_CTRL,
 		.enable_mask = ACT8846_ENA,
 		.owner = THIS_MODULE,
-	},
-
-	{
+	}, {
 		.name = "LDO_REG9",
 		.id = ACT8846_ID_LDO9,
 		.ops = &act8846_ops,
@@ -235,9 +221,7 @@ static const struct regulator_desc act8846_reg[] = {
 		.enable_reg = ACT8846_LDO9_CTRL,
 		.enable_mask = ACT8846_ENA,
 		.owner = THIS_MODULE,
-	},
-
-	{
+	}, {
 		.name = "LDO_REG10",
 		.id = ACT8846_ID_LDO10,
 		.ops = &act8846_ops,
@@ -250,9 +234,7 @@ static const struct regulator_desc act8846_reg[] = {
 		.enable_reg = ACT8846_LDO10_CTRL,
 		.enable_mask = ACT8846_ENA,
 		.owner = THIS_MODULE,
-	},
-
-	{
+	}, {
 		.name = "LDO_REG11",
 		.id = ACT8846_ID_LDO11,
 		.ops = &act8846_ops,
@@ -265,9 +247,7 @@ static const struct regulator_desc act8846_reg[] = {
 		.enable_reg = ACT8846_LDO11_CTRL,
 		.enable_mask = ACT8846_ENA,
 		.owner = THIS_MODULE,
-	},
-
-	{
+	}, {
 		.name = "LDO_REG12",
 		.id = ACT8846_ID_LDO12,
 		.ops = &act8846_ops,
@@ -280,6 +260,16 @@ static const struct regulator_desc act8846_reg[] = {
 		.enable_reg = ACT8846_LDO12_CTRL,
 		.enable_mask = ACT8846_ENA,
 		.owner = THIS_MODULE,
+/*	}, {
+		.name = "LDO_REG13",
+		.id = ACT8846_ID_LDO13,
+		.ops = &act8846_fixed_ops,
+		.type = REGULATOR_VOLTAGE,
+		.n_voltages = 1,
+		.fixed_uV = 1800000,
+		.enable_reg = ACT8846_LDO13_CTRL,
+		.enable_mask = ACT8846_ENA,
+		.owner = THIS_MODULE,*/
 	},
 };
 
@@ -303,6 +293,7 @@ static struct of_regulator_match act8846_matches[] = {
 	[ACT8846_ID_LDO10]	= { .name = "LDO_REG10"},
 	[ACT8846_ID_LDO11]	= { .name = "LDO_REG11"},
 	[ACT8846_ID_LDO12]	= { .name = "LDO_REG12"},
+//	[ACT8846_ID_LDO13]	= { .name = "LDO_REG13"},
 };
 
 static int act8846_pdata_from_dt(struct device *dev,
