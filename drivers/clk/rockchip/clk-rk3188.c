@@ -292,9 +292,9 @@ static struct rockchip_gate_clock rk3188_gate_clks[] __initdata = {
 	GATE(0, "gate_div_cif_out", "div_cif_out", RK2928_CLKGATE_CON(3), 7, 0, GFLAGS),
 	GATE(0, "gate_timer5", "xin24m", RK2928_CLKGATE_CON(3), 8, 0, GFLAGS),
 	GATE(0, "gate_div_aclk_vepu", "div_aclk_vepu", RK2928_CLKGATE_CON(3), 9, 0, GFLAGS),
-	GATE(0, "gate_hclk_vepu", "ffactor_hclk_vepu", RK2928_CLKGATE_CON(3), 10, 0, GFLAGS), // FIXME: ffactor_hclk_vepu is gate_aclk_vepu / 4
+	GATE(0, "gate_hclk_vepu", "dummy", RK2928_CLKGATE_CON(3), 10, 0, GFLAGS),
 	GATE(0, "gate_div_aclk_vdpu", "div_aclk_vdpu", RK2928_CLKGATE_CON(3), 11, 0, GFLAGS),
-	GATE(0, "gate_hclk_vdpu", "ffactor_hclk_vdpu", RK2928_CLKGATE_CON(3), 12, 0, GFLAGS), // FIXME: ffactor_hclk_vdpu is gate_aclk_vdpu / 4
+	GATE(0, "gate_hclk_vdpu", "dummy", RK2928_CLKGATE_CON(3), 12, 0, GFLAGS),
 	/* reserved 13 */
 	GATE(0, "gate_timer6", "xin24m", RK2928_CLKGATE_CON(3), 14, 0, GFLAGS),
 	GATE(0, "gate_aclk_gpu_src", "dummy", RK2928_CLKGATE_CON(3), 15, 0, GFLAGS),
@@ -331,7 +331,7 @@ static struct rockchip_gate_clock rk3188_gate_clks[] __initdata = {
 	GATE(HCLK_MMC0, "gate_hclk_mmc0", "gate_hclk_peri", RK2928_CLKGATE_CON(5), 10, 0, GFLAGS),
 	GATE(HCLK_MMC1, "gate_hclk_mmc1", "gate_hclk_peri", RK2928_CLKGATE_CON(5), 11, 0, GFLAGS),
 	GATE(HCLK_MMC2, "gate_hclk_mmc2", "gate_hclk_peri", RK2928_CLKGATE_CON(5), 12, 0, GFLAGS),
-	GATE(0, "gate_hclk_otg0", "gate_hclk_peri_usb", RK2928_CLKGATE_CON(5), 13, 0, GFLAGS),
+	GATE(HCLK_OTG0, "gate_hclk_otg0", "gate_hclk_peri_usb", RK2928_CLKGATE_CON(5), 13, 0, GFLAGS),
 	/* reserved 14:15 */
 
 	/* CLKGATE_CON_6 */
@@ -354,7 +354,7 @@ static struct rockchip_gate_clock rk3188_gate_clks[] __initdata = {
 	GATE(HCLK_EMAC, "gate_hclk_emac", "gate_hclk_peri", RK2928_CLKGATE_CON(7), 0, 0, GFLAGS),
 	GATE(HCLK_SPDIF, "gate_hclk_spdif", "gate_hclk_cpu", RK2928_CLKGATE_CON(7), 1, 0, GFLAGS),
 	GATE(HCLK_I2S, "gate_hclk_i2s", "gate_hclk_cpu", RK2928_CLKGATE_CON(7), 2, 0, GFLAGS),
-	GATE(HCLK_OTG1, "gate_hclk_hsadc", "gate_hclk_peri_usb", RK2928_CLKGATE_CON(7), 3, 0, GFLAGS),
+	GATE(HCLK_OTG1, "gate_hclk_otg1", "gate_hclk_peri_usb", RK2928_CLKGATE_CON(7), 3, 0, GFLAGS),
 	GATE(HCLK_HSIC, "gate_hclk_hsic", "gate_hclk_peri", RK2928_CLKGATE_CON(7), 4, 0, GFLAGS),
 	GATE(HCLK_HSADC, "gate_hclk_hsadc", "gate_hclk_peri", RK2928_CLKGATE_CON(7), 5, 0, GFLAGS),
 	GATE(HCLK_PIDF, "gate_hclk_pidf", "gate_hclk_peri", RK2928_CLKGATE_CON(7), 6, 0, GFLAGS),
@@ -395,8 +395,6 @@ static struct rockchip_gate_clock rk3188_gate_clks[] __initdata = {
 	GATE(0, "gate_pclk_publ", "gate_pclk_cpu", RK2928_CLKGATE_CON(9), 6, 0, GFLAGS),
 	GATE(0, "gate_aclk_gpu", "div_aclk_gpu", RK2928_CLKGATE_CON(9), 7, 0, GFLAGS),
 	/* reserved 8:15 */
-
-
 };
 
 
@@ -418,7 +416,7 @@ struct rockchip_clk_init_table rk3188_clk_init_tbl[] = {
 
 	{ "cpll", NULL, 600000000, 0 },
 
-//	{ "mux_mac_pll", "cpll", 0, 0 },
+	{ "mux_mac_pll", "cpll", 0, 0 },
 	{ "div_mac", NULL,  50000000, 0 },
 
 };

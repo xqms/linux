@@ -6,7 +6,7 @@
 #define CLK_GATE(_reg, _bit) ((_reg + 1) * 16 + _bit)
 
 
-#define CLK_ARMCLK	1
+#define SCLK_ARMCLK	1
 
 
 #define SCLK_UART0	2
@@ -24,7 +24,7 @@
 #define HCLK_MMC0	CLK_GATE(5, 10)
 #define HCLK_MMC1	CLK_GATE(5, 11)
 #define HCLK_MMC2	CLK_GATE(5, 12)
-
+#define HCLK_OTG0	CLK_GATE(5, 13)
 
 #define HCLK_EMAC	CLK_GATE(7, 0)
 #define HCLK_SPDIF	CLK_GATE(7, 1)
