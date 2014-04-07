@@ -221,13 +221,19 @@
 					rockchip,pins = <RK_GPIO0 0 RK_FUNC_GPIO &pcfg_pull_up>;
 				};
 			};
+
+			lan8720a  {
+				phy_int: phy-int {
+					rockchip,pins = <RK_GPIO3 26 RK_FUNC_GPIO &pcfg_pull_up>;
+				};
+			};
 		};
 
 		emac@10204000 {
 			status = "okay";
 
 			pinctrl-names = "default";
-			pinctrl-0 = <&emac_xfer>;
+			pinctrl-0 = <&emac_xfer>, <&phy_int>;
 
 			mac-address = [ 00 11 22 33 44 55 ];
 			phy = <&phy0>;
