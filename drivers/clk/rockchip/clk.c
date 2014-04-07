@@ -57,6 +57,16 @@ void rockchip_clk_add_lookup(struct clk *clk, unsigned int id)
 		clk_table[id] = clk;
 }
 
+void __init rockchip_clk_register_plls(struct rockchip_pll_clock *list,
+				unsigned int nr_pll, void __iomem *base,
+				void __iomem *reg_lock)
+{
+	int cnt;
+
+	for (cnt = 0; cnt < nr_pll; cnt++)
+		rockchip_clk_register_pll(&list[cnt], base, reg_lock, &clk_lock);
+}
+
 void __init rockchip_clk_register_mux(struct rockchip_mux_clock *list,
 				      unsigned int nr_clk, void __iomem *base)
 {
