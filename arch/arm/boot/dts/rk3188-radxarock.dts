@@ -234,6 +234,8 @@
 
 			phy0: ethernet-phy@0 {
 				reg = <0>;
+				interrupt-parent = <&gpio3>;
+				interrupts = <26 IRQ_TYPE_LEVEL_LOW>;
 			};
 		};
 
