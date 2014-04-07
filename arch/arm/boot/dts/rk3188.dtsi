@@ -102,6 +102,25 @@
 	};
 
 	soc {
+		amba {
+			compatible = "arm,amba-bus";
+			#address-cells = <1>;
+			#size-cells = <1>;
+			ranges;
+/*
+			dmac2: dma@20078000 {
+				compatible = "arm,pl330", "arm,primecell";
+				reg = <0x20078000 0x1000>;
+				interrupts = <GIC_SPI 2 IRQ_TYPE_LEVEL_HIGH>,
+					     <GIC_SPI 3 IRQ_TYPE_LEVEL_HIGH>;
+				#dma-cells = <1>;
+				#dma-channels = <7>;
+				#dma-requests = <14>;
+				clocks = <&cru ACLK_DMAC2>;
+				clock-names = "apb_pclk";
+			};*/
+		};
+
 		global-timer@1013c200 {
 			interrupts = <GIC_PPI 11 0xf04>;
 		};
@@ -149,6 +168,7 @@
 			      <0x200080ac 0x4>;
 
 			#clock-cells = <1>;
+			#reset-cells = <1>;
 
 			#rockchip,armclk-cells = <3>;
 			rockchip,armclk-divider-table = <2208000 2 4>,
