@@ -142,6 +142,7 @@ PNAME(mux_sclk_uart1_p)		= { "gate_div_uart1", "gate_frac_uart1", "xin24m" };
 PNAME(mux_sclk_uart2_p)		= { "gate_div_uart2", "gate_frac_uart2", "xin24m" };
 PNAME(mux_sclk_uart3_p)		= { "gate_div_uart3", "gate_frac_uart3", "xin24m" };
 
+PNAME(mux_mac_p)		= { "gpll", "dpll" };
 PNAME(mux_sclk_mac_p)		= { "gate_div_mac", "rmii_clkin" };
 
 PNAME(mux_hsicphy_p)		= { "gate_otgphy0", "gate_otgphy1", "gpll", "cpll" };
@@ -167,7 +168,7 @@ static struct rockchip_mux_clock rk3188_mux_clks[] __initdata = {
 
 	MUX(0, "mux_hsicphy", mux_hsicphy_p, RK2928_CLKSEL_CON(30), 0, 2, 0, MFLAGS),
 
-	MUX(0, "mux_mac_pll", mux_pll_src_gpll_cpll_p, RK2928_CLKSEL_CON(21), 0, 2, 0, MFLAGS),
+	MUX(0, "mux_mac_pll", mux_mac_p, RK2928_CLKSEL_CON(21), 0, 2, 0, MFLAGS),
 	MUX(SCLK_MAC, "mux_sclk_mac", mux_sclk_mac_p, RK2928_CLKSEL_CON(21), 4, 1, 0, MFLAGS),
 
 	MUX(0, "mux_ddr", mux_ddr_p, RK2928_CLKSEL_CON(26), 8, 1, 0, MFLAGS),
@@ -440,9 +441,12 @@ struct rockchip_clk_init_table rk3188_clk_init_tbl[] __initdata = {
 
 	{ "cpll", NULL, 600000000, 0 },
 
-	{ "mux_mac_pll", "cpll", 0, 0 },
+	/* we need exactly 50MHz for the MAC */
+	{ "mux_mac_pll", "dpll", 0, 0 },
 	{ "div_mac", NULL,  50000000, 0 },
 
+	/* FIXME: is this needed? */
+	{ "gate_mac_lbtest", NULL, 0, 1 },
 };
 
 static void __init rk3188_clock_apply_init_table(void)
