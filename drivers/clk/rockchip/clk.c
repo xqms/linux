@@ -28,9 +28,7 @@
 static DEFINE_SPINLOCK(clk_lock);
 static struct clk **clk_table;
 static void __iomem *reg_base;
-
 static struct clk_onecell_data clk_data;
-
 
 void __init rockchip_clk_init(struct device_node *np, void __iomem *base,
 			      unsigned long nr_clks)
@@ -58,13 +56,13 @@ void rockchip_clk_add_lookup(struct clk *clk, unsigned int id)
 }
 
 void __init rockchip_clk_register_plls(struct rockchip_pll_clock *list,
-				unsigned int nr_pll, void __iomem *base,
-				void __iomem *reg_lock)
+				unsigned int nr_pll, void __iomem *reg_lock)
 {
 	int cnt;
 
 	for (cnt = 0; cnt < nr_pll; cnt++)
-		rockchip_clk_register_pll(&list[cnt], base, reg_lock, &clk_lock);
+		rockchip_clk_register_pll(&list[cnt], reg_base, reg_lock,
+					  &clk_lock);
 }
 
 void __init rockchip_clk_register_mux(struct rockchip_mux_clock *list,
@@ -104,7 +102,8 @@ void __init rockchip_clk_register_div(struct rockchip_div_clock *list,
 			clk = clk_register_divider(NULL, list->name,
 					list->parent_name, list->flags,
 					reg_base + list->offset, list->shift,
-					list->width, list->div_flags, &clk_lock);
+					list->width, list->div_flags,
+					&clk_lock);
 		if (IS_ERR(clk)) {
 			pr_err("%s: failed to register clock %s\n", __func__,
 				list->name);

@@ -463,7 +463,7 @@ static void __init rk3188_clk_init(struct device_node *np)
 	reg_grf_soc_status = of_iomap(np, 1);
 
 	rockchip_clk_register_plls(rk3188_pll_clks, ARRAY_SIZE(rk3188_pll_clks),
-				  reg_base, reg_grf_soc_status);
+				   reg_grf_soc_status);
 	rockchip_clk_register_cpuclk(SCLK_ARMCLK, "armclk", mux_armclk_p, ARRAY_SIZE(mux_armclk_p), reg_base, np);
 
 	rockchip_clk_register_mux(rk3188_mux_clks, ARRAY_SIZE(rk3188_mux_clks));
