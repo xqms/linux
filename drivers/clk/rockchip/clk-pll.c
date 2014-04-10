@@ -249,7 +249,7 @@ static const struct clk_ops rockchip_rk3066_pll_clk_ops = {
 	.set_rate = rockchip_rk3066_pll_set_rate,
 };
 
-void __init rockchip_clk_register_pll(struct rockchip_pll_clock *pll_clk,
+struct clk *rockchip_clk_register_pll(struct rockchip_pll_clock *pll_clk,
 				void __iomem *base, void __iomem *reg_lock,
 				spinlock_t *lock)
 {
@@ -262,7 +262,7 @@ void __init rockchip_clk_register_pll(struct rockchip_pll_clock *pll_clk,
 	if (!pll) {
 		pr_err("%s: could not allocate pll clk %s\n",
 			__func__, pll_clk->name);
-		return;
+		return ERR_PTR(-ENOMEM);
 	}
 
 	init.name = pll_clk->name;
@@ -299,7 +299,6 @@ void __init rockchip_clk_register_pll(struct rockchip_pll_clock *pll_clk,
 
 	pll->hw.init = &init;
 	pll->type = pll_clk->type;
-
 	pll->reg_base = base + pll_clk->con_offset;
 	pll->reg_mode = base + pll_clk->mode_offset;
 	pll->mode_shift = pll_clk->mode_shift;
@@ -312,8 +311,7 @@ void __init rockchip_clk_register_pll(struct rockchip_pll_clock *pll_clk,
 		pr_err("%s: failed to register pll clock %s : %ld\n",
 			__func__, pll_clk->name, PTR_ERR(clk));
 		kfree(pll);
-		return;
 	}
 
-	rockchip_clk_add_lookup(clk, pll_clk->id);
+	return clk;
 }

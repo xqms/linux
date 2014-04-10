@@ -58,11 +58,38 @@ void rockchip_clk_add_lookup(struct clk *clk, unsigned int id)
 void __init rockchip_clk_register_plls(struct rockchip_pll_clock *list,
 				unsigned int nr_pll, void __iomem *reg_lock)
 {
-	int cnt;
+	struct clk *clk;
+	int idx;
 
-	for (cnt = 0; cnt < nr_pll; cnt++)
-		rockchip_clk_register_pll(&list[cnt], reg_base, reg_lock,
-					  &clk_lock);
+	for (idx = 0; idx < nr_pll; idx++, list++) {
+		clk = rockchip_clk_register_pll(list, reg_base, reg_lock,
+						&clk_lock);
+		if (IS_ERR(clk)) {
+			pr_err("%s: failed to register clock %s\n", __func__,
+				list->name);
+			continue;
+		}
+
+		rockchip_clk_add_lookup(clk, list->id);
+	}
+}
+
+void __init rockchip_clk_register_armclk(unsigned int lookup_id,
+			const char *name, const char **parent_names,
+			unsigned int num_parents, void __iomem *reg_base,
+			struct device_node *np)
+{
+	struct clk *clk;
+
+	clk = rockchip_clk_register_cpuclk(name, parent_names, num_parents,
+					   reg_base, np, &clk_lock);
+	if (IS_ERR(clk)) {
+		pr_err("%s: failed to register clock %s\n", __func__,
+			name);
+		return;
+	}
+
+	rockchip_clk_add_lookup(clk, lookup_id);
 }
 
 void __init rockchip_clk_register_mux(struct rockchip_mux_clock *list,

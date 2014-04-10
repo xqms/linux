@@ -439,8 +439,6 @@ struct rockchip_clk_init_table rk3188_clk_init_tbl[] __initdata = {
 
 	{ "div_mmc0", NULL,  75000000, 0 },
 
-	{ "cpll", NULL, 600000000, 0 },
-
 	{ "gate_div_mac", NULL,  50000000, 0 },
 
 	/* FIXME: is this needed? */
@@ -457,18 +455,27 @@ static void __init rk3188_clk_init(struct device_node *np)
 	void __iomem *reg_base, *reg_grf_soc_status;
 
 	reg_base = of_iomap(np, 0);
+	if (!reg_base) {
+		pr_err("%s: could not map cru region\n", __func__);
+		return;
+	}
+
+	reg_grf_soc_status = of_iomap(np, 1);
+	if (!reg_grf_soc_status) {
+		pr_err("%s: could not map soc_status register\n", __func__);
+		return;
+	}
 
 	rockchip_clk_init(np, reg_base, NR_CLKS);
 
-	reg_grf_soc_status = of_iomap(np, 1);
-
 	rockchip_clk_register_plls(rk3188_pll_clks, ARRAY_SIZE(rk3188_pll_clks),
 				   reg_grf_soc_status);
-	rockchip_clk_register_cpuclk(SCLK_ARMCLK, "armclk", mux_armclk_p, ARRAY_SIZE(mux_armclk_p), reg_base, np);
 
 	rockchip_clk_register_mux(rk3188_mux_clks, ARRAY_SIZE(rk3188_mux_clks));
 	rockchip_clk_register_div(rk3188_div_clks, ARRAY_SIZE(rk3188_div_clks));
 	rockchip_clk_register_gate(rk3188_gate_clks, ARRAY_SIZE(rk3188_gate_clks));
+
+	rockchip_clk_register_armclk(SCLK_ARMCLK, "armclk", mux_armclk_p, ARRAY_SIZE(mux_armclk_p), reg_base, np);
 
 	rockchip_register_softrst(np, 9, reg_base + RK2928_SOFTRST_CON(0), ROCKCHIP_SOFTRST_HIWORD_MASK);
 
