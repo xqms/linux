@@ -108,17 +108,29 @@
 			#size-cells = <1>;
 			ranges;
 /*
+			dmac1: dma@20018000 {
+				compatible = "arm,pl330", "arm,primecell";
+				reg = <0x2001c000 0x4000>;
+				interrupts = <GIC_SPI 0 IRQ_TYPE_LEVEL_HIGH>,
+					     <GIC_SPI 1 IRQ_TYPE_LEVEL_HIGH>;
+				#dma-cells = <1>;
+				#dma-channels = <7>;
+				#dma-requests = <14>;
+				clocks = <&cru ACLK_DMAC0>;
+				clock-names = "apb_pclk";
+			};*/
+
 			dmac2: dma@20078000 {
 				compatible = "arm,pl330", "arm,primecell";
-				reg = <0x20078000 0x1000>;
+				reg = <0x20078000 0x4000>;
 				interrupts = <GIC_SPI 2 IRQ_TYPE_LEVEL_HIGH>,
 					     <GIC_SPI 3 IRQ_TYPE_LEVEL_HIGH>;
 				#dma-cells = <1>;
 				#dma-channels = <7>;
 				#dma-requests = <14>;
-				clocks = <&cru ACLK_DMAC2>;
+				clocks = <&cru ACLK_DMAC1>;
 				clock-names = "apb_pclk";
-			};*/
+			};
 		};
 
 		global-timer@1013c200 {
@@ -325,9 +337,12 @@
 							<RK_GPIO3 20 RK_FUNC_2 &pcfg_pull_none>, //rxd1
 							<RK_GPIO3 21 RK_FUNC_2 &pcfg_pull_none>, //mac_clk
 							<RK_GPIO3 22 RK_FUNC_2 &pcfg_pull_none>, //rx_err
-							<RK_GPIO3 23 RK_FUNC_2 &pcfg_pull_none>, //crs_dvalid
-							<RK_GPIO3 24 RK_FUNC_2 &pcfg_pull_none>, //md
-							<RK_GPIO3 25 RK_FUNC_2 &pcfg_pull_none>; //mdclk
+							<RK_GPIO3 23 RK_FUNC_2 &pcfg_pull_none>; //crs_dvalid
+				};
+
+				emac_mdio: emac-mdio {
+					rockchip,pins = <RK_GPIO3 24 RK_FUNC_2 &pcfg_pull_none>,
+							<RK_GPIO3 25 RK_FUNC_2 &pcfg_pull_none>;
 				};
 			};
 
