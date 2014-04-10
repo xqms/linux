@@ -464,10 +464,11 @@ static void __init rk3188_clk_init(struct device_node *np)
 
 	rockchip_clk_register_plls(rk3188_pll_clks, ARRAY_SIZE(rk3188_pll_clks),
 				  reg_base, reg_grf_soc_status);
-	rockchip_clk_register_mux(rk3188_mux_clks, ARRAY_SIZE(rk3188_mux_clks), reg_base);
-	rockchip_clk_register_div(rk3188_div_clks, ARRAY_SIZE(rk3188_div_clks), reg_base);
-	rockchip_clk_register_gate(rk3188_gate_clks, ARRAY_SIZE(rk3188_gate_clks), reg_base);
-	rockchip_clk_register_cpuclk(1, "armclk", mux_armclk_p, ARRAY_SIZE(mux_armclk_p), reg_base, np);
+	rockchip_clk_register_cpuclk(SCLK_ARMCLK, "armclk", mux_armclk_p, ARRAY_SIZE(mux_armclk_p), reg_base, np);
+
+	rockchip_clk_register_mux(rk3188_mux_clks, ARRAY_SIZE(rk3188_mux_clks));
+	rockchip_clk_register_div(rk3188_div_clks, ARRAY_SIZE(rk3188_div_clks));
+	rockchip_clk_register_gate(rk3188_gate_clks, ARRAY_SIZE(rk3188_gate_clks));
 
 	rockchip_register_softrst(np, 9, reg_base + RK2928_SOFTRST_CON(0), ROCKCHIP_SOFTRST_HIWORD_MASK);
 

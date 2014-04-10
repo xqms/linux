@@ -209,7 +209,6 @@ struct rockchip_gate_clock {
 		.gate_flags	= gf,				\
 	}
 
-
 /**
  * struct rockchip_clk_init_table - clock initialization table
  * @name:	clock name to set
@@ -233,12 +232,11 @@ void rockchip_clk_register_plls(struct rockchip_pll_clock *pll_list,
 				unsigned int nr_pll, void __iomem *base,
 				void __iomem *reg_lock);
 void rockchip_clk_register_mux(struct rockchip_mux_clock *clk_list,
-				unsigned int nr_clk, void __iomem *base);
+				unsigned int nr_clk);
 void rockchip_clk_register_div(struct rockchip_div_clock *clk_list,
-				unsigned int nr_clk, void __iomem *base);
+				unsigned int nr_clk);
 void rockchip_clk_register_gate(struct rockchip_gate_clock *clk_list,
-				unsigned int nr_clk, void __iomem *base);
- 
+				unsigned int nr_clk);
 int rockchip_clk_register_cpuclk(unsigned int lookup_id,
 		const char *name, const char **parents,
 		unsigned int num_parents, void __iomem *base,
