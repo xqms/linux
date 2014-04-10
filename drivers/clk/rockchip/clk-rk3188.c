@@ -168,7 +168,7 @@ static struct rockchip_mux_clock rk3188_mux_clks[] __initdata = {
 
 	MUX(0, "mux_hsicphy", mux_hsicphy_p, RK2928_CLKSEL_CON(30), 0, 2, 0, MFLAGS),
 
-	MUX(0, "mux_mac_pll", mux_mac_p, RK2928_CLKSEL_CON(21), 0, 2, 0, MFLAGS),
+	MUX(0, "mux_mac", mux_mac_p, RK2928_CLKSEL_CON(21), 0, 2, 0, MFLAGS),
 	MUX(SCLK_MAC, "mux_sclk_mac", mux_sclk_mac_p, RK2928_CLKSEL_CON(21), 4, 1, 0, MFLAGS),
 
 	MUX(0, "mux_ddr", mux_ddr_p, RK2928_CLKSEL_CON(26), 8, 1, 0, MFLAGS),
@@ -228,7 +228,7 @@ static struct rockchip_div_clock rk3188_div_clks[] __initdata = {
 	DIV(0, "div_mmc1", "gate_hclk_peri", RK2928_CLKSEL_CON(12), 0, 6, 0, DFLAGS, NULL),
 	DIV(0, "div_mmc2", "gate_hclk_peri", RK2928_CLKSEL_CON(12), 8, 6, 0, DFLAGS, NULL),
 
-	DIV(0, "div_mac", "mux_mac_pll", RK2928_CLKSEL_CON(21), 8, 5, 0, DFLAGS, NULL),
+	DIV(0, "div_mac", "mux_mac", RK2928_CLKSEL_CON(21), 8, 5, CLK_SET_RATE_PARENT, DFLAGS, NULL),
 
 	/* FIXME: what is the divider, should it be 12m? */
 	DIV(0, "div_hsicphy", "mux_hsicphy", RK2928_CLKGATE_CON(11), 8, 6, 0, DFLAGS, NULL),
@@ -441,9 +441,7 @@ struct rockchip_clk_init_table rk3188_clk_init_tbl[] __initdata = {
 
 	{ "cpll", NULL, 600000000, 0 },
 
-	/* we need exactly 50MHz for the MAC */
-	{ "mux_mac_pll", "dpll", 0, 0 },
-	{ "div_mac", NULL,  50000000, 0 },
+	{ "gate_div_mac", NULL,  50000000, 0 },
 
 	/* FIXME: is this needed? */
 	{ "gate_mac_lbtest", NULL, 0, 1 },
