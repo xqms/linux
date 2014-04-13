@@ -22,6 +22,7 @@
 #include <linux/of_mdio.h>
 #include <linux/of_net.h>
 #include <linux/of_platform.h>
+#include <linux/regulator/consumer.h>
 
 #include "emac.h"
 
@@ -620,6 +621,7 @@ static int arc_emac_probe(struct platform_device *pdev)
 {
 	struct resource res_regs;
 	struct device_node *phy_node;
+	struct regulator *regulator;
 	struct arc_emac_priv *priv;
 	struct net_device *ndev;
 	const char *mac_addr;
@@ -649,6 +651,14 @@ static int arc_emac_probe(struct platform_device *pdev)
 		dev_err(&pdev->dev, "failed to retrieve <irq> value from device tree\n");
 		return -ENODEV;
 	}
+
+	/* Enable the regulator (if there is one) */
+	regulator = devm_regulator_get(&pdev->dev, "phy");
+	if(IS_ERR(regulator)) {
+		dev_warn(&pdev->dev, "regulator not available (yet)\n");
+		return PTR_ERR(regulator);
+	}
+	regulator_enable(regulator);
 
 	ndev = alloc_etherdev(sizeof(struct arc_emac_priv));
 	if (!ndev)
