@@ -461,6 +461,56 @@
 							<RK_GPIO3 20 RK_FUNC_1 &pcfg_pull_none>;
 				};
 			};
+
+			i2c0 {
+				i2c0_sda: i2c0-sda {
+					rockchip,pins = <RK_GPIO1 24 RK_FUNC_1 &pcfg_pull_none>;
+				};
+
+				i2c0_scl: i2c0-scl {
+					rockchip,pins = <RK_GPIO1 25 RK_FUNC_1 &pcfg_pull_none>;
+				};
+			};
+
+			i2c1 {
+				i2c1_sda: i2c1-sda {
+					rockchip,pins = <RK_GPIO1 26 RK_FUNC_1 &pcfg_pull_none>;
+				};
+
+				i2c1_scl: i2c1-scl {
+					rockchip,pins = <RK_GPIO1 27 RK_FUNC_1 &pcfg_pull_none>;
+				};
+			};
+
+			i2c2 {
+				i2c2_sda: i2c2-sda {
+					rockchip,pins = <RK_GPIO1 28 RK_FUNC_1 &pcfg_pull_none>;
+				};
+
+				i2c2_scl: i2c2-scl {
+					rockchip,pins = <RK_GPIO1 29 RK_FUNC_1 &pcfg_pull_none>;
+				};
+			};
+
+			i2c3 {
+				i2c3_sda: i2c3-sda {
+					rockchip,pins = <RK_GPIO3 14 RK_FUNC_2 &pcfg_pull_none>;
+				};
+
+				i2c3_scl: i2c3-scl {
+					rockchip,pins = <RK_GPIO3 15 RK_FUNC_2 &pcfg_pull_none>;
+				};
+			};
+
+			i2c4 {
+				i2c4_sda: i2c4-sda {
+					rockchip,pins = <RK_GPIO1 30 RK_FUNC_1 &pcfg_pull_none>;
+				};
+
+				i2c4_scl: i2c4-scl {
+					rockchip,pins = <RK_GPIO3 31 RK_FUNC_1 &pcfg_pull_none>;
+				};
+			};
 		};
 	};
 };
