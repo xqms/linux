@@ -237,6 +237,7 @@
 
 			mac-address = [ c6 ef 91 8e 60 4b ];
 			phy = <&phy0>;
+			phy-supply = <&vcc_rmii>;
 
 			phy0: ethernet-phy@0 {
 				reg = <0>;
