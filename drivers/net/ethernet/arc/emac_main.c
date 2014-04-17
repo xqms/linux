@@ -653,12 +653,14 @@ static int arc_emac_probe(struct platform_device *pdev)
 	}
 
 	/* Enable the regulator (if there is one) */
-	regulator = devm_regulator_get(&pdev->dev, "phy");
-	if(IS_ERR(regulator)) {
-		dev_warn(&pdev->dev, "regulator not available (yet)\n");
-		return PTR_ERR(regulator);
+	regulator = devm_regulator_get_optional(&pdev->dev, "phy");
+	if (!IS_ERR(regulator))
+		regulator_enable(regulator);
+	else if(PTR_ERR(regulator) == -EPROBE_DEFER) {
+		/* node is present, but not initialized yet */
+		dev_err(&pdev->dev, "regulator not ready\n");
+		return -EPROBE_DEFER;
 	}
-	regulator_enable(regulator);
 
 	ndev = alloc_etherdev(sizeof(struct arc_emac_priv));
 	if (!ndev)
