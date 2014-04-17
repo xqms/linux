@@ -89,33 +89,31 @@ struct rk3x_i2c
 {
 	struct i2c_adapter adap;
 	struct device *dev;
-	struct clk *clk;
+
+	/* Hardware resources */
 	void __iomem *regs;
+	struct clk *clk;
 	int irq;
 
+	/* Synchronization & notification */
 	spinlock_t lock;
 	wait_queue_head_t wait;
+	bool busy;
 
 	/* Current message */
 	struct i2c_msg *msg;
 	u8 addr;
-	unsigned int count;
 	unsigned int mode;
 
-	/* State */
-	bool busy;
+	/* I2C state machine */
 	enum rk3x_i2c_state state;
+	unsigned int processed; /* sent/received bytes */
 	int error;
-	unsigned int processed;
-
-	unsigned long i2c_rate;
-	unsigned long scl_rate;
 };
 
 static inline void i2c_writel(struct rk3x_i2c *i2c, u32 value,
                               unsigned int offset)
 {
-// 	dev_warn(i2c->dev, "writing reg %03x: %08x\n", offset, value);
 	writel(value, i2c->regs + offset);
 }
 
@@ -131,7 +129,22 @@ static inline void rk3x_i2c_clean_ipd(struct rk3x_i2c *i2c)
 }
 
 /**
- * Generate a STOP condition next.
+ * Generate a START condition, which triggers a REG_INT_START interrupt.
+ */
+static void rk3x_i2c_start(struct rk3x_i2c *i2c)
+{
+	rk3x_i2c_clean_ipd(i2c);
+	i2c_writel(i2c, REG_INT_START, REG_IEN);
+
+	i2c_writel(i2c,
+		REG_CON_EN | REG_CON_MOD(i2c->mode) | REG_CON_START
+		 | REG_CON_LASTACK,
+		REG_CON
+	);
+}
+
+/**
+ * Generate a STOP condition, which triggers a REG_INT_STOP interrupt.
  *
  * @error: Error code to return in rk3x_i2c_xfer
  */
@@ -212,8 +225,8 @@ static void rk3x_i2c_prepare_write(struct rk3x_i2c *i2c)
 			else
 				byte = i2c->msg->buf[i2c->processed++];
 
-			cnt++;
 			val |= byte << (j*8);
+			cnt++;
 		}
 
 		i2c_writel(i2c, val, TXBUFFER_BASE + 4*i);
@@ -345,14 +358,16 @@ static irqreturn_t rk3x_i2c_irq(int irqno, void *dev_id)
 	dev_dbg(i2c->dev, "IRQ: state %d, ipd: %x\n", i2c->state, ipd);
 
 	if (ipd & REG_INT_NAKRCV) {
+		/* We got a NACK at some point. */
 		i2c_writel(i2c, REG_INT_NAKRCV, REG_IPD);
 
 		/* Unfortunately, the hw seems to be incapable of stopping at this
-		 * point. So we carry out the current operation and report and error. */
-		i2c->error = -EAGAIN;
+		 * point. So we carry out the current operation and report an error. */
+		i2c->error = -EAGAIN; /* triggers retry in i2c layer */
 
 		/* the NAKRCV interrupt seems to occur sometimes together with the BTF
-		 * interrupt, which is not used. So just discard everything. */
+		 * interrupt, which is not used. So just discard other set bits in
+		 * ipd. */
 		goto out;
 	}
 
@@ -382,9 +397,6 @@ static void rk3x_i2c_set_scl_rate(struct rk3x_i2c* i2c, unsigned long scl_rate)
 {
 	unsigned long i2c_rate = clk_get_rate(i2c->clk);
 	unsigned int div, divl, divh;
-
-	i2c->i2c_rate = i2c_rate;
-	i2c->scl_rate = scl_rate;
 
 	/* SCL rate = (clk rate) / (8 * DIV) */
 	div = DIV_ROUND_UP(i2c_rate, scl_rate * 8);
@@ -424,8 +436,6 @@ static int rk3x_i2c_setup(struct rk3x_i2c *i2c, struct i2c_msg *msgs, int num)
 
 		dev_dbg(i2c->dev, "Combined write/read from addr 0x%x\n", addr >> 1);
 
-		i2c->count = msgs[1].len;
-
 		if (msgs[0].len == 0)
 			return -EINVAL;
 
@@ -454,12 +464,9 @@ static int rk3x_i2c_setup(struct rk3x_i2c *i2c, struct i2c_msg *msgs, int num)
 		/* We'll have to do it the boring way and process the msgs
 		 * one-by-one. */
 
-		i2c->count = msgs[0].len;
 		if (msgs[0].flags & I2C_M_RD) {
 			addr |= 1; /* set read bit */
 			i2c->msg = &msgs[0];
-// 			i2c_writel(i2c, addr | REG_MRXADDR_LOW, REG_MRXADDR);
-// 			i2c_writel(i2c, 0, REG_MRXRADDR);
 			i2c->mode = REG_CON_MOD_RX;
 		} else {
 			i2c->msg = &msgs[0];
@@ -480,20 +487,6 @@ static int rk3x_i2c_setup(struct rk3x_i2c *i2c, struct i2c_msg *msgs, int num)
 	return ret;
 }
 
-/**
- * Start an I2C operation (issues a START condition and generates an IRQ).
- */
-static void rk3x_i2c_start(struct rk3x_i2c *i2c)
-{
-	rk3x_i2c_clean_ipd(i2c);
-	i2c_writel(i2c, REG_INT_START, REG_IEN);
-
-	i2c_writel(i2c,
-	           REG_CON_EN | REG_CON_MOD(i2c->mode) | REG_CON_START
-	           | REG_CON_LASTACK,
-	           REG_CON);
-}
-
 static int rk3x_i2c_xfer(struct i2c_adapter *adap,
                          struct i2c_msg *msgs, int num)
 {
@@ -507,7 +500,8 @@ static int rk3x_i2c_xfer(struct i2c_adapter *adap,
 
 	clk_enable(i2c->clk);
 
-	/* Process msgs. We can handle more than one message at once. */
+	/* Process msgs. We can handle more than one message at once (see
+	 * rk3x_i2c_setup()). */
 	for(i = 0; i < num; i += ret)
 	{
 		spin_lock_irqsave(&i2c->lock, flags);
@@ -529,7 +523,7 @@ static int rk3x_i2c_xfer(struct i2c_adapter *adap,
 		if (timeout == 0) {
 			dev_err(i2c->dev, "timeout, ipd: 0x%08X", i2c_readl(i2c, REG_IPD));
 
-			/* Force a STOP condition */
+			/* Force a STOP condition without interrupt */
 			i2c_writel(i2c, 0, REG_IEN);
 			i2c_writel(i2c, REG_CON_EN | REG_CON_STOP, REG_CON);
 
@@ -618,7 +612,7 @@ static int rk3x_i2c_probe(struct platform_device *pdev)
 		goto err_clk;
 	}
 
-	ret = regmap_write(grf, 4, BIT(11 + bus_idx) | BIT(27 + bus_idx));
+	ret = regmap_write(grf, 4, BIT(27 + bus_idx) | BIT(11 + bus_idx));
 	if (ret != 0) {
 		dev_err(&pdev->dev, "could not enable I2C adapter in GRF: %d\n", ret);
 		ret = -EIO;
