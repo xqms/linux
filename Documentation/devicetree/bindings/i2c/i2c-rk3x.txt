@@ -1,0 +1,25 @@
+* Rockchip RK3xxx I2C controller
+
+Required properties :
+
+ - reg : Offset and length of the register set for the device
+ - compatible : should be "rockchip,rk3x-i2c"
+ - interrupts : interrupt number
+ - clocks : parent clock which in the end determines SCL rate
+ - grf : the phandle of the syscon node for the general register file (GRF)
+ - bus-idx : index of the bus in the GRF
+
+Example:
+	i2c0: i2c@2002d000 {
+		compatible = "rockchip,rk3x-i2c";
+		reg = <0x2002d000 0x1000>;
+		interrupts = <GIC_SPI 40 IRQ_TYPE_LEVEL_HIGH>;
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		grf = <&grf>;
+		bus-idx = <0>;
+
+		clock-names = "i2c";
+		clocks = <&cru PCLK_I2C0>;
+	};
