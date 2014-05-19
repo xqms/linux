@@ -22,6 +22,14 @@
 / {
 	compatible = "rockchip,rk3188";
 
+	aliases {
+		i2c0 = &i2c0;
+		i2c1 = &i2c1;
+		i2c2 = &i2c2;
+		i2c3 = &i2c3;
+		i2c4 = &i2c4;
+	};
+
 	cpus {
 		#address-cells = <1>;
 		#size-cells = <0>;
@@ -521,7 +529,6 @@
 			#size-cells = <0>;
 
 			rockchip,grf = <&grf>;
-			rockchip,bus-index = <0>;
 
 			clock-names = "i2c";
 			clocks = <&cru PCLK_I2C0>;
@@ -537,7 +544,6 @@
 			#size-cells = <0>;
 
 			rockchip,grf = <&grf>;
-			rockchip,bus-index = <1>;
 
 			clocks = <&cru PCLK_I2C1>;
 			clock-names = "i2c";
@@ -553,7 +559,6 @@
 			#size-cells = <0>;
 
 			rockchip,grf = <&grf>;
-			rockchip,bus-index = <2>;
 
 			clocks = <&cru PCLK_I2C2>;
 			clock-names = "i2c";
@@ -569,7 +574,6 @@
 			#size-cells = <0>;
 
 			rockchip,grf = <&grf>;
-			rockchip,bus-index = <3>;
 
 			clocks = <&cru PCLK_I2C3>;
 			clock-names = "i2c";
@@ -585,7 +589,6 @@
 			#size-cells = <0>;
 
 			rockchip,grf = <&grf>;
-			rockchip,bus-index = <4>;
 
 			clocks = <&cru PCLK_I2C4>;
 			clock-names = "i2c";
