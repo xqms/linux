@@ -599,6 +599,34 @@ static struct rockchip_clk_branch rk3188_clk_branches[] __initdata = {
 	GATE(ACLK_GPS, "aclk_gps", "aclk_peri", 0, RK2928_CLKGATE_CON(8), 13, GFLAGS),
 };
 
+struct rockchip_clk_init_table rk3188_clk_init_tbl[] __initdata = {
+	{ "gpll", NULL, 891000000, 0 },
+	{ "cpll", NULL, 600000000, 0 },
+
+	{ "aclk_cpu", NULL, 300000000, 0 },
+
+	{ "hclk_cpu", NULL, 150000000, 0 },
+	{ "pclk_cpu", NULL,  75000000, 0 },
+	{ "hclk_ahb2apb", NULL, 75000000, 0 },
+
+	{ "aclk_peri_pre", "cpll", 150000000, 0 },
+
+	{ "hclk_peri", NULL, 150000000, 0 },
+	{ "pclk_peri", NULL,  75000000, 0 },
+
+	{ "sclk_sdmmc", NULL,  75000000, 0 },
+
+	{ "sclk_macref", NULL,  50000000, 0 },
+
+	/* FIXME: is this needed? */
+	{ "sclk_mac_lbtest", NULL, 0, 1 },
+};
+
+static void __init rk3188_clock_apply_init_table(void)
+{
+	rockchip_clk_init_from_table(rk3188_clk_init_tbl, ARRAY_SIZE(rk3188_clk_init_tbl));
+}
+
 static void __init rk3188_common_clk_init(struct device_node *np)
 {
 	void __iomem *reg_base;
@@ -646,6 +674,8 @@ static void __init rk3188a_clk_init(struct device_node *np)
 	rk3188_common_clk_init(np);
 	rockchip_clk_register_branches(rk3188_clk_branches,
 				  ARRAY_SIZE(rk3188_clk_branches));
+
+	rockchip_clk_apply_init_table = rk3188_clock_apply_init_table;
 }
 CLK_OF_DECLARE(rk3188a_cru, "rockchip,rk3188a-cru", rk3188a_clk_init);
 
